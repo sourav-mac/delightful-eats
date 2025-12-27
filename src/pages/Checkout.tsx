@@ -77,10 +77,7 @@ export default function Checkout() {
     }
   };
 
-  if (!user) {
-    navigate('/auth');
-    return null;
-  }
+  // User auth is now handled by ProtectedRoute wrapper
 
   if (items.length === 0 && !orderPlaced) {
     navigate('/cart');

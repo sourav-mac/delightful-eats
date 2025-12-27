@@ -9,7 +9,8 @@ import {
   MessageSquare,
   ChevronLeft,
   LogOut,
-  Home
+  Home,
+  BarChart3
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -17,6 +18,7 @@ import { useAuth } from '@/contexts/AuthContext';
 
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
+  { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
   { href: '/admin/orders', label: 'Orders', icon: ShoppingBag },
   { href: '/admin/menu', label: 'Menu Items', icon: UtensilsCrossed },
   { href: '/admin/categories', label: 'Categories', icon: FolderOpen },

@@ -13,8 +13,8 @@ export function Footer() {
               <span className="text-xl font-display font-medium">Petuk</span>
             </div>
             <p className="text-sm text-background/70">
-              Experience the authentic taste of Bengali cuisine. Every dish tells a story of tradition, 
-              love, and the finest ingredients.
+              Experience the authentic taste of Indian Bengali cuisine. Every dish tells a story of tradition, 
+              love, and the finest spices from Kolkata.
             </p>
             <div className="flex gap-3">
               <a href="#" className="p-2 rounded-full bg-background/10 hover:bg-primary transition-colors">
@@ -55,16 +55,16 @@ export function Footer() {
               <div className="flex items-start gap-3">
                 <MapPin className="h-4 w-4 mt-1 text-primary" />
                 <span className="text-sm text-background/70">
-                  123 Gulshan Avenue, Dhaka-1212, Bangladesh
+                  45 Park Street, Kolkata - 700016, West Bengal, India
                 </span>
               </div>
               <div className="flex items-center gap-3">
                 <Phone className="h-4 w-4 text-primary" />
-                <span className="text-sm text-background/70">+880 1234-567890</span>
+                <span className="text-sm text-background/70">+91 33 2234 5678</span>
               </div>
               <div className="flex items-center gap-3">
                 <Mail className="h-4 w-4 text-primary" />
-                <span className="text-sm text-background/70">hello@petuk.com</span>
+                <span className="text-sm text-background/70">hello@petuk.in</span>
               </div>
             </div>
           </div>

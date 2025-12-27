@@ -157,7 +157,7 @@ export default function Analytics() {
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">৳{stats.totalRevenue.toLocaleString()}</div>
+              <div className="text-2xl font-bold">₹{stats.totalRevenue.toLocaleString()}</div>
             </CardContent>
           </Card>
           <Card>
@@ -175,7 +175,7 @@ export default function Analytics() {
               <Star className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">৳{stats.avgOrderValue.toFixed(0)}</div>
+              <div className="text-2xl font-bold">₹{stats.avgOrderValue.toFixed(0)}</div>
             </CardContent>
           </Card>
           <Card>

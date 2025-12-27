@@ -1,9 +1,49 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, UtensilsCrossed, Clock, Star, Users } from 'lucide-react';
+import { ArrowRight, UtensilsCrossed, Clock, Star, Users, Flame, Leaf } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Layout } from '@/components/layout/Layout';
+import { supabase } from '@/integrations/supabase/client';
+
+interface MenuItem {
+  id: string;
+  name: string;
+  name_bn: string | null;
+  description: string | null;
+  price: number;
+  original_price: number | null;
+  is_spicy: boolean | null;
+  is_vegetarian: boolean | null;
+  preparation_time: number | null;
+}
 
 export default function Index() {
+  const [popularDishes, setPopularDishes] = useState<MenuItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    fetchPopularDishes();
+  }, []);
+
+  const fetchPopularDishes = async () => {
+    try {
+      const { data } = await supabase
+        .from('menu_items')
+        .select('*')
+        .eq('is_popular', true)
+        .eq('is_available', true)
+        .limit(6);
+      
+      if (data) setPopularDishes(data);
+    } catch (error) {
+      console.error('Error fetching popular dishes:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <Layout>
       {/* Hero Section */}
@@ -57,8 +97,72 @@ export default function Index() {
         </div>
       </section>
 
+      {/* Popular Dishes */}
+      {popularDishes.length > 0 && (
+        <section className="py-20">
+          <div className="container">
+            <div className="text-center mb-12">
+              <h2 className="text-4xl font-display font-bold mb-4">Popular Dishes</h2>
+              <p className="text-muted-foreground max-w-md mx-auto">
+                Our most loved dishes that keep our guests coming back for more
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {popularDishes.map((dish) => (
+                <Card key={dish.id} className="overflow-hidden hover:shadow-card transition-shadow">
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 space-y-2">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-display font-semibold text-lg">{dish.name}</h3>
+                          {dish.is_spicy && (
+                            <Flame className="h-4 w-4 text-spicy" />
+                          )}
+                          {dish.is_vegetarian && (
+                            <Leaf className="h-4 w-4 text-vegetarian" />
+                          )}
+                        </div>
+                        {dish.name_bn && (
+                          <p className="text-sm font-bengali text-muted-foreground">{dish.name_bn}</p>
+                        )}
+                        {dish.description && (
+                          <p className="text-sm text-muted-foreground line-clamp-2">{dish.description}</p>
+                        )}
+                        <div className="flex items-center gap-3 pt-2">
+                          <span className="text-lg font-bold text-primary">₹{dish.price}</span>
+                          {dish.original_price && dish.original_price > dish.price && (
+                            <span className="text-sm text-muted-foreground line-through">₹{dish.original_price}</span>
+                          )}
+                        </div>
+                        {dish.preparation_time && (
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <Clock className="h-3 w-3" />
+                            <span>{dish.preparation_time} mins</span>
+                          </div>
+                        )}
+                      </div>
+                      <Badge variant="secondary" className="bg-popular/10 text-popular border-0">
+                        <Star className="h-3 w-3 mr-1" />
+                        Popular
+                      </Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            <div className="text-center mt-10">
+              <Button size="lg" variant="outline" asChild>
+                <Link to="/menu">View Full Menu <ArrowRight className="ml-2 h-4 w-4" /></Link>
+              </Button>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* CTA */}
-      <section className="py-20">
+      <section className="py-20 bg-secondary">
         <div className="container text-center space-y-6">
           <h2 className="text-4xl font-display font-bold">Ready to Order?</h2>
           <p className="text-muted-foreground max-w-md mx-auto">

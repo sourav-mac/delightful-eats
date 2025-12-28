@@ -207,18 +207,6 @@ export default function Index() {
         </section>
       )}
 
-      {/* CTA */}
-      <section className="py-20 bg-secondary">
-        <div className="container text-center space-y-6">
-          <h2 className="text-4xl font-display font-bold">Ready to Order?</h2>
-          <p className="text-muted-foreground max-w-md mx-auto">
-            Browse our menu and experience the authentic taste of Indian Bengali cuisine delivered to your doorstep.
-          </p>
-          <Button size="lg" asChild>
-            <Link to="/menu">View Full Menu</Link>
-          </Button>
-        </div>
-      </section>
     </Layout>
   );
 }

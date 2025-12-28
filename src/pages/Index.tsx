@@ -79,7 +79,9 @@ export default function Index() {
             <div className="flex flex-wrap gap-4 pt-4">
               <Button size="lg" variant="secondary" asChild>
                 <Link to="/menu">
-                  Explore Menu <ArrowRight className="ml-2 h-5 w-5" />
+                  <UtensilsCrossed className="mr-2 h-5 w-5" />
+                  Explore Menu
+                  <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
               <Button size="lg" variant="secondary" className="bg-white/20 border border-white/40 text-white hover:bg-white/30 backdrop-blur-sm" asChild>

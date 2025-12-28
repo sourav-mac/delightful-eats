@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, ShoppingCart, User, LogOut, LayoutDashboard } from 'lucide-react';
+import { Menu, X, ShoppingCart, User, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -24,7 +24,7 @@ const navLinks = [
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
-  const { user, isAdmin, signOut } = useAuth();
+  const { user, signOut } = useAuth();
   const { itemCount } = useCart();
 
   return (
@@ -89,17 +89,6 @@ export function Navbar() {
                     My Orders
                   </Link>
                 </DropdownMenuItem>
-                {isAdmin && (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <Link to="/admin" className="flex items-center gap-2">
-                        <LayoutDashboard className="h-4 w-4" />
-                        Admin Dashboard
-                      </Link>
-                    </DropdownMenuItem>
-                  </>
-                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={signOut} className="text-destructive">
                   <LogOut className="h-4 w-4 mr-2" />

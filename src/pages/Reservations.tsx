@@ -48,14 +48,20 @@ export default function Reservations() {
     setIsSubmitting(true);
     const formData = new FormData(e.currentTarget);
 
+    const guestName = formData.get('name') as string;
+    const guestPhone = formData.get('phone') as string;
+    const reservationDate = formData.get('date') as string;
+    const reservationTime = formData.get('time') as string;
+    const partySize = parseInt(formData.get('party_size') as string);
+
     const { error } = await supabase.from('reservations').insert({
       user_id: user.id,
-      guest_name: formData.get('name') as string,
+      guest_name: guestName,
       guest_email: formData.get('email') as string,
-      guest_phone: formData.get('phone') as string,
-      party_size: parseInt(formData.get('party_size') as string),
-      reservation_date: formData.get('date') as string,
-      reservation_time: formData.get('time') as string,
+      guest_phone: guestPhone,
+      party_size: partySize,
+      reservation_date: reservationDate,
+      reservation_time: reservationTime,
       special_requests: formData.get('requests') as string,
     });
 
@@ -64,6 +70,20 @@ export default function Reservations() {
     if (error) {
       toast.error(error.message);
     } else {
+      // Send SMS notification to admin
+      supabase.functions.invoke('send-sms', {
+        body: {
+          type: 'new_reservation',
+          data: {
+            guestName,
+            phone: guestPhone,
+            date: reservationDate,
+            time: reservationTime,
+            partySize,
+          },
+        },
+      }).catch(console.error);
+
       setShowSuccess(true);
       fetchReservations();
       (e.target as HTMLFormElement).reset();

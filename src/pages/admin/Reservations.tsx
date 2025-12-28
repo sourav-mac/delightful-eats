@@ -37,11 +37,27 @@ export default function AdminReservations() {
   };
 
   const updateStatus = async (id: string, newStatus: string) => {
+    const reservation = reservations.find(r => r.id === id);
     const { error } = await supabase.from('reservations').update({ status: newStatus }).eq('id', id);
     if (error) {
       toast.error('Failed to update status');
     } else {
       toast.success('Reservation status updated');
+      
+      // Send SMS notification to user
+      if (reservation?.guest_phone) {
+        supabase.functions.invoke('send-sms', {
+          body: {
+            type: 'reservation_status',
+            data: {
+              status: newStatus,
+              date: reservation.reservation_date,
+              userPhone: reservation.guest_phone,
+            },
+          },
+        }).catch(console.error);
+      }
+      
       fetchReservations();
     }
   };

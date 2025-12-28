@@ -1,12 +1,27 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+// Helper function to get CORS headers with origin validation
+function getCorsHeaders(req: Request): Record<string, string> {
+  const origin = req.headers.get('Origin') || '';
+  const allowedOrigins = [
+    Deno.env.get('FRONTEND_URL'),
+    'https://lovable.dev',
+    'https://dwncekwarwkyjfwztebf.lovableproject.com',
+  ].filter(Boolean);
+  
+  const allowedOrigin = allowedOrigins.includes(origin) ? origin : (allowedOrigins[0] || '*');
+  
+  return {
+    'Access-Control-Allow-Origin': allowedOrigin,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  };
+}
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
+  
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });

@@ -15,6 +15,7 @@ interface MenuItem {
   description: string | null;
   price: number;
   original_price: number | null;
+  image_url: string | null;
   is_spicy: boolean | null;
   is_vegetarian: boolean | null;
   preparation_time: number | null;
@@ -124,27 +125,57 @@ export default function Index() {
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {popularDishes.map((dish) => (
-                <Card key={dish.id} className="overflow-hidden hover:shadow-card transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1 space-y-2">
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-display font-semibold text-lg">{dish.name}</h3>
-                          {dish.is_spicy && (
-                            <Flame className="h-4 w-4 text-spicy" />
-                          )}
-                          {dish.is_vegetarian && (
-                            <Leaf className="h-4 w-4 text-vegetarian" />
-                          )}
+                <Card key={dish.id} className="overflow-hidden hover:shadow-card transition-shadow group">
+                  {/* Dish Image */}
+                  <div className="relative h-48 overflow-hidden bg-muted">
+                    {dish.image_url ? (
+                      <img 
+                        src={dish.image_url} 
+                        alt={dish.name}
+                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-accent/20">
+                        <span className="text-4xl font-bengali font-bold text-primary/60">
+                          {dish.name_bn?.charAt(0) || dish.name.charAt(0)}
+                        </span>
+                      </div>
+                    )}
+                    {/* Badges overlay */}
+                    <div className="absolute top-3 left-3 flex gap-2">
+                      <Badge variant="secondary" className="bg-popular/90 text-popular-foreground border-0 backdrop-blur-sm">
+                        <Star className="h-3 w-3 mr-1" />
+                        Popular
+                      </Badge>
+                    </div>
+                    <div className="absolute top-3 right-3 flex gap-1">
+                      {dish.is_spicy && (
+                        <div className="w-7 h-7 rounded-full bg-spicy/90 flex items-center justify-center backdrop-blur-sm">
+                          <Flame className="h-4 w-4 text-white" />
                         </div>
+                      )}
+                      {dish.is_vegetarian && (
+                        <div className="w-7 h-7 rounded-full bg-vegetarian/90 flex items-center justify-center backdrop-blur-sm">
+                          <Leaf className="h-4 w-4 text-white" />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <CardContent className="p-5">
+                    <div className="space-y-2">
+                      <div>
+                        <h3 className="font-display font-semibold text-lg">{dish.name}</h3>
                         {dish.name_bn && (
                           <p className="text-sm font-bengali text-muted-foreground">{dish.name_bn}</p>
                         )}
-                        {dish.description && (
-                          <p className="text-sm text-muted-foreground line-clamp-2">{dish.description}</p>
-                        )}
-                        <div className="flex items-center gap-3 pt-2">
-                          <span className="text-lg font-bold text-primary">₹{dish.price}</span>
+                      </div>
+                      {dish.description && (
+                        <p className="text-sm text-muted-foreground line-clamp-2">{dish.description}</p>
+                      )}
+                      <div className="flex items-center justify-between pt-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xl font-bold text-primary">₹{dish.price}</span>
                           {dish.original_price && dish.original_price > dish.price && (
                             <span className="text-sm text-muted-foreground line-through">₹{dish.original_price}</span>
                           )}
@@ -156,10 +187,6 @@ export default function Index() {
                           </div>
                         )}
                       </div>
-                      <Badge variant="secondary" className="bg-popular/10 text-popular border-0">
-                        <Star className="h-3 w-3 mr-1" />
-                        Popular
-                      </Badge>
                     </div>
                   </CardContent>
                 </Card>

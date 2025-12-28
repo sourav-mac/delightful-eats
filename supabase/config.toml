@@ -3,6 +3,9 @@ project_id = "dwncekwarwkyjfwztebf"
 [functions.create-razorpay-order]
 verify_jwt = true
 
+[functions.verify-razorpay-payment]
+verify_jwt = true
+
 [functions.send-sms]
 verify_jwt = true
 

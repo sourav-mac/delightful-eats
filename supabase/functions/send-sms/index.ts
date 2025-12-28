@@ -1,16 +1,28 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
-const TWILIO_ACCOUNT_SID = 'AC0b9882ecf7a29b073f8b887d7946b7eb';
-const TWILIO_PHONE = '+15707985443';
-const ADMIN_PHONE = '+919733674981';
+// Helper function to get CORS headers with origin validation
+function getCorsHeaders(req: Request): Record<string, string> {
+  const origin = req.headers.get('Origin') || '';
+  const allowedOrigins = [
+    Deno.env.get('FRONTEND_URL'),
+    'https://lovable.dev',
+    'https://dwncekwarwkyjfwztebf.lovableproject.com',
+  ].filter(Boolean);
+  
+  // Allow the origin if it's in our list, otherwise use the first allowed origin
+  const allowedOrigin = allowedOrigins.includes(origin) ? origin : (allowedOrigins[0] || '*');
+  
+  return {
+    'Access-Control-Allow-Origin': allowedOrigin,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  };
+}
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
+  
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -45,8 +57,6 @@ serve(async (req) => {
     const { type, data } = await req.json();
     
     // Validate the user has permission for the requested action
-    // For new_order: verify the order belongs to the user
-    // For order_status/reservation_status: verify admin role or ownership
     if (type === 'new_order' && data.orderId) {
       const { data: order, error: orderError } = await supabase
         .from('orders')
@@ -63,7 +73,6 @@ serve(async (req) => {
         });
       }
     } else if (type === 'order_status' || type === 'reservation_status') {
-      // Check if user is admin for status update notifications
       const { data: roleData } = await supabase
         .from('user_roles')
         .select('role')
@@ -95,8 +104,21 @@ serve(async (req) => {
       }
     }
 
+    // Get Twilio credentials from environment variables
+    const twilioAccountSid = Deno.env.get('TWILIO_ACCOUNT_SID');
+    const twilioPhone = Deno.env.get('TWILIO_PHONE');
+    const adminPhone = Deno.env.get('ADMIN_PHONE');
     const authToken = Deno.env.get('TWILIO_AUTH_TOKEN');
 
+    if (!twilioAccountSid) {
+      throw new Error('Twilio account SID not configured');
+    }
+    if (!twilioPhone) {
+      throw new Error('Twilio phone number not configured');
+    }
+    if (!adminPhone) {
+      throw new Error('Admin phone number not configured');
+    }
     if (!authToken) {
       throw new Error('Twilio auth token not configured');
     }
@@ -105,15 +127,13 @@ serve(async (req) => {
 
     switch (type) {
       case 'new_order':
-        // Notify admin about new order
         messages.push({
-          to: ADMIN_PHONE,
+          to: adminPhone,
           body: `🍽️ New Order #${data.orderId.slice(0, 8)}!\nAmount: ₹${data.amount}\nPhone: ${data.phone}\nAddress: ${data.address?.slice(0, 50)}...`,
         });
         break;
 
       case 'order_status':
-        // Notify user about order status change (admin only)
         if (data.userPhone) {
           const statusMessages: Record<string, string> = {
             confirmed: '✅ Your order has been confirmed and is being prepared!',
@@ -131,15 +151,13 @@ serve(async (req) => {
         break;
 
       case 'new_reservation':
-        // Notify admin about new reservation
         messages.push({
-          to: ADMIN_PHONE,
+          to: adminPhone,
           body: `📅 New Reservation!\nGuest: ${data.guestName}\nDate: ${data.date} at ${data.time}\nParty: ${data.partySize} guests\nPhone: ${data.phone}`,
         });
         break;
 
       case 'reservation_status':
-        // Notify user about reservation status change (admin only)
         if (data.userPhone) {
           const statusMessages: Record<string, string> = {
             confirmed: '✅ Your reservation has been confirmed! We look forward to seeing you.',
@@ -162,17 +180,17 @@ serve(async (req) => {
     for (const msg of messages) {
       console.log(`Sending SMS to ${msg.to}: ${msg.body}`);
       
-      const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_ACCOUNT_SID}/Messages.json`;
+      const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${twilioAccountSid}/Messages.json`;
       
       const response = await fetch(twilioUrl, {
         method: 'POST',
         headers: {
-          'Authorization': 'Basic ' + btoa(`${TWILIO_ACCOUNT_SID}:${authToken}`),
+          'Authorization': 'Basic ' + btoa(`${twilioAccountSid}:${authToken}`),
           'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: new URLSearchParams({
           To: msg.to,
-          From: TWILIO_PHONE,
+          From: twilioPhone,
           Body: msg.body,
         }),
       });
@@ -196,7 +214,7 @@ serve(async (req) => {
     console.error('Error sending SMS:', error);
     return new Response(JSON.stringify({ error: errorMessage }), {
       status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
     });
   }
 });

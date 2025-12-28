@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Plus, Pencil, Trash2, Flame, Leaf, Star } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Plus, Pencil, Trash2, Flame, Leaf, Star, Upload, X } from 'lucide-react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,6 +23,10 @@ export default function AdminMenu() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchData();
@@ -38,10 +42,70 @@ export default function AdminMenu() {
     setIsLoading(false);
   };
 
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('Image must be less than 5MB');
+        return;
+      }
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const clearImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const uploadImage = async (file: File): Promise<string | null> => {
+    setIsUploading(true);
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+    const filePath = `${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('menu-images')
+      .upload(filePath, file);
+
+    if (uploadError) {
+      toast.error('Failed to upload image');
+      console.error(uploadError);
+      setIsUploading(false);
+      return null;
+    }
+
+    const { data: urlData } = supabase.storage
+      .from('menu-images')
+      .getPublicUrl(filePath);
+
+    setIsUploading(false);
+    return urlData.publicUrl;
+  };
+
   const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSaving(true);
     const form = new FormData(e.currentTarget);
+    
+    let imageUrl = editItem?.image_url || null;
+    
+    // Upload new image if selected
+    if (imageFile) {
+      const uploadedUrl = await uploadImage(imageFile);
+      if (uploadedUrl) {
+        imageUrl = uploadedUrl;
+      }
+    }
+
     const data = {
       name: form.get('name') as string,
       name_bn: form.get('name_bn') as string || null,
@@ -54,6 +118,7 @@ export default function AdminMenu() {
       is_spicy: form.get('is_spicy') === 'on',
       is_popular: form.get('is_popular') === 'on',
       is_available: form.get('is_available') === 'on',
+      image_url: imageUrl,
     };
 
     const { error } = editItem
@@ -67,6 +132,7 @@ export default function AdminMenu() {
       toast.success(editItem ? 'Item updated' : 'Item created');
       setIsDialogOpen(false);
       setEditItem(null);
+      clearImage();
       fetchData();
     }
   };
@@ -82,8 +148,20 @@ export default function AdminMenu() {
     setDeleteId(null);
   };
 
-  const openCreate = () => { setEditItem(null); setIsDialogOpen(true); };
-  const openEdit = (item: MenuItem) => { setEditItem(item); setIsDialogOpen(true); };
+  const openCreate = () => { 
+    setEditItem(null); 
+    clearImage();
+    setIsDialogOpen(true); 
+  };
+  
+  const openEdit = (item: MenuItem) => { 
+    setEditItem(item); 
+    clearImage();
+    if (item.image_url) {
+      setImagePreview(item.image_url);
+    }
+    setIsDialogOpen(true); 
+  };
 
   return (
     <AdminLayout>
@@ -154,6 +232,56 @@ export default function AdminMenu() {
                   <Input id="name_bn" name="name_bn" defaultValue={editItem?.name_bn || ''} />
                 </div>
               </div>
+              {/* Image Upload */}
+              <div className="space-y-2">
+                <Label>Food Image</Label>
+                <div className="flex items-center gap-4">
+                  {imagePreview ? (
+                    <div className="relative w-24 h-24">
+                      <img 
+                        src={imagePreview} 
+                        alt="Preview" 
+                        className="w-full h-full object-cover rounded-lg border"
+                      />
+                      <button
+                        type="button"
+                        onClick={clearImage}
+                        className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div 
+                      className="w-24 h-24 border-2 border-dashed border-muted-foreground/30 rounded-lg flex items-center justify-center cursor-pointer hover:border-primary/50 transition-colors"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <Upload className="h-6 w-6 text-muted-foreground" />
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageSelect}
+                      className="hidden"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <Upload className="h-4 w-4 mr-2" />
+                      {imagePreview ? 'Change Image' : 'Upload Image'}
+                    </Button>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Max 5MB, JPG/PNG/WebP
+                    </p>
+                  </div>
+                </div>
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="description">Description</Label>
                 <Textarea id="description" name="description" defaultValue={editItem?.description || ''} rows={2} />
@@ -201,7 +329,9 @@ export default function AdminMenu() {
               </div>
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
-                <Button type="submit" disabled={isSaving}>{isSaving ? 'Saving...' : 'Save'}</Button>
+                <Button type="submit" disabled={isSaving || isUploading}>
+                  {isUploading ? 'Uploading...' : isSaving ? 'Saving...' : 'Save'}
+                </Button>
               </DialogFooter>
             </form>
           </DialogContent>

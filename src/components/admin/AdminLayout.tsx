@@ -10,7 +10,8 @@ import {
   ChevronLeft,
   LogOut,
   Home,
-  BarChart3
+  BarChart3,
+  Settings
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -24,6 +25,7 @@ const navItems = [
   { href: '/admin/categories', label: 'Categories', icon: FolderOpen },
   { href: '/admin/reservations', label: 'Reservations', icon: CalendarDays },
   { href: '/admin/reviews', label: 'Reviews', icon: MessageSquare },
+  { href: '/admin/settings', label: 'Settings', icon: Settings },
 ];
 
 export function AdminLayout({ children }: { children: React.ReactNode }) {

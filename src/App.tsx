@@ -23,6 +23,7 @@ import AdminMenuItems from "./pages/admin/MenuItems";
 import AdminCategories from "./pages/admin/Categories";
 import AdminReservations from "./pages/admin/Reservations";
 import AdminReviews from "./pages/admin/Reviews";
+import AdminSettings from "./pages/admin/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -57,6 +58,7 @@ const App = () => (
               <Route path="/admin/categories" element={<AdminRoute><AdminCategories /></AdminRoute>} />
               <Route path="/admin/reservations" element={<AdminRoute><AdminReservations /></AdminRoute>} />
               <Route path="/admin/reviews" element={<AdminRoute><AdminReviews /></AdminRoute>} />
+              <Route path="/admin/settings" element={<AdminRoute><AdminSettings /></AdminRoute>} />
               
               <Route path="*" element={<NotFound />} />
             </Routes>

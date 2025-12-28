@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CreditCard, Banknote, MapPin, Phone, FileText, CheckCircle, AlertCircle } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
@@ -16,6 +16,14 @@ import { useRestaurantSettings } from '@/hooks/useRestaurantSettings';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
+
+const RAZORPAY_KEY_ID = 'rzp_test_RrcPAcvB65TfFu';
+
 export default function Checkout() {
   const { items, total, clearCart } = useCart();
   const { user } = useAuth();
@@ -24,10 +32,88 @@ export default function Checkout() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('cash');
   const [orderPlaced, setOrderPlaced] = useState(false);
+  const [razorpayLoaded, setRazorpayLoaded] = useState(false);
 
   const deliveryFee = settings.delivery_charge;
   const grandTotal = total + deliveryFee;
   const minOrderMet = total >= settings.min_order_price;
+
+  // Load Razorpay script
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.async = true;
+    script.onload = () => setRazorpayLoaded(true);
+    document.body.appendChild(script);
+
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
+
+  const processRazorpayPayment = async (orderId: string, formData: FormData) => {
+    try {
+      // Create Razorpay order
+      const { data, error } = await supabase.functions.invoke('create-razorpay-order', {
+        body: {
+          amount: grandTotal,
+          currency: 'INR',
+          receipt: `order_${orderId}`,
+        },
+      });
+
+      if (error) throw new Error(error.message);
+
+      const options = {
+        key: RAZORPAY_KEY_ID,
+        amount: data.amount,
+        currency: data.currency,
+        name: 'Your Restaurant',
+        description: `Order #${orderId.slice(0, 8)}`,
+        order_id: data.orderId,
+        handler: async function (response: any) {
+          // Payment successful
+          try {
+            await supabase
+              .from('orders')
+              .update({ payment_status: 'paid' })
+              .eq('id', orderId);
+
+            await clearCart();
+            setOrderPlaced(true);
+            toast.success('Payment successful! Order placed.');
+          } catch (err) {
+            toast.error('Order placed but status update failed');
+          }
+          setIsSubmitting(false);
+        },
+        prefill: {
+          name: user?.user_metadata?.full_name || '',
+          email: user?.email || '',
+          contact: formData.get('phone') as string,
+        },
+        theme: {
+          color: '#f97316',
+        },
+        modal: {
+          ondismiss: function () {
+            // Payment cancelled, delete the pending order
+            supabase.from('orders').delete().eq('id', orderId);
+            setIsSubmitting(false);
+            toast.error('Payment cancelled');
+          },
+        },
+      };
+
+      const razorpay = new window.Razorpay(options);
+      razorpay.open();
+    } catch (error: any) {
+      // Delete pending order on error
+      await supabase.from('orders').delete().eq('id', orderId);
+      toast.error(error.message || 'Payment failed');
+      setIsSubmitting(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -40,6 +126,11 @@ export default function Checkout() {
 
     if (!settings.isOpen) {
       toast.error('Sorry, we are currently closed');
+      return;
+    }
+
+    if (paymentMethod === 'razorpay' && !razorpayLoaded) {
+      toast.error('Payment system loading, please wait...');
       return;
     }
 
@@ -58,7 +149,7 @@ export default function Checkout() {
           delivery_notes: formData.get('notes') as string,
           payment_method: paymentMethod,
           status: 'pending',
-          payment_status: paymentMethod === 'cash' ? 'pending' : 'pending',
+          payment_status: 'pending',
         })
         .select()
         .single();
@@ -80,18 +171,21 @@ export default function Checkout() {
 
       if (itemsError) throw itemsError;
 
-      // Clear cart
-      await clearCart();
-      setOrderPlaced(true);
-      toast.success('Order placed successfully!');
+      // Process payment based on method
+      if (paymentMethod === 'razorpay') {
+        await processRazorpayPayment(order.id, formData);
+      } else {
+        // Cash on delivery
+        await clearCart();
+        setOrderPlaced(true);
+        toast.success('Order placed successfully!');
+        setIsSubmitting(false);
+      }
     } catch (error: any) {
       toast.error(error.message || 'Failed to place order');
-    } finally {
       setIsSubmitting(false);
     }
   };
-
-  // User auth is now handled by ProtectedRoute wrapper
 
   if (items.length === 0 && !orderPlaced) {
     navigate('/cart');
@@ -191,12 +285,12 @@ export default function Checkout() {
                       </Label>
                     </div>
                     <div className="flex items-center space-x-3 p-4 border border-border rounded-lg cursor-pointer hover:bg-muted/50">
-                      <RadioGroupItem value="bkash" id="bkash" />
-                      <Label htmlFor="bkash" className="flex items-center gap-3 cursor-pointer flex-1">
-                        <CreditCard className="h-5 w-5 text-pink-500" />
+                      <RadioGroupItem value="razorpay" id="razorpay" />
+                      <Label htmlFor="razorpay" className="flex items-center gap-3 cursor-pointer flex-1">
+                        <CreditCard className="h-5 w-5 text-blue-500" />
                         <div>
-                          <p className="font-medium">bKash / Mobile Banking</p>
-                          <p className="text-sm text-muted-foreground">Pay using mobile wallet</p>
+                          <p className="font-medium">Pay Online (Razorpay)</p>
+                          <p className="text-sm text-muted-foreground">Cards, UPI, NetBanking, Wallets</p>
                         </div>
                       </Label>
                     </div>
@@ -238,7 +332,7 @@ export default function Checkout() {
                     size="lg" 
                     disabled={isSubmitting || !minOrderMet || !settings.isOpen || settingsLoading}
                   >
-                    {isSubmitting ? 'Placing Order...' : !settings.isOpen ? 'Restaurant Closed' : !minOrderMet ? `Add ৳${(settings.min_order_price - total).toFixed(2)} more` : 'Place Order'}
+                    {isSubmitting ? 'Processing...' : !settings.isOpen ? 'Restaurant Closed' : !minOrderMet ? `Add ৳${(settings.min_order_price - total).toFixed(2)} more` : paymentMethod === 'razorpay' ? 'Pay Now' : 'Place Order'}
                   </Button>
                 </CardContent>
               </Card>

@@ -126,6 +126,9 @@ export default function Reviews() {
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-2">
+                            <span className="font-medium text-foreground">
+                              {review.profile?.full_name || 'Anonymous'}
+                            </span>
                             <div className="flex">
                               {[1, 2, 3, 4, 5].map((star) => (
                                 <Star

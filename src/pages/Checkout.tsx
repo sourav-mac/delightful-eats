@@ -15,6 +15,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useRestaurantSettings } from '@/hooks/useRestaurantSettings';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { z } from 'zod';
 
 declare global {
   interface Window {
@@ -22,7 +23,24 @@ declare global {
   }
 }
 
-
+// Input validation schema
+const checkoutSchema = z.object({
+  address: z.string()
+    .min(10, 'Address must be at least 10 characters')
+    .max(500, 'Address must be less than 500 characters')
+    .transform(val => val.trim()),
+  phone: z.string()
+    .regex(/^\+?[1-9]\d{1,14}$/, 'Invalid phone number format (use format: +919876543210)')
+    .transform(val => val.replace(/[\s\-()]/g, '')),
+  notes: z.string()
+    .max(1000, 'Notes must be less than 1000 characters')
+    .transform(val => val.trim())
+    .optional()
+    .nullable(),
+  payment_method: z.enum(['cash', 'razorpay'], {
+    errorMap: () => ({ message: 'Please select a valid payment method' })
+  })
+});
 
 export default function Checkout() {
   const { items, total, clearCart } = useCart();
@@ -30,9 +48,10 @@ export default function Checkout() {
   const { settings, isLoading: settingsLoading } = useRestaurantSettings();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState('cash');
+  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'razorpay'>('cash');
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [razorpayLoaded, setRazorpayLoaded] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   const deliveryFee = settings.delivery_charge;
   const grandTotal = total + deliveryFee;
@@ -51,15 +70,11 @@ export default function Checkout() {
     };
   }, []);
 
-  const processRazorpayPayment = async (orderId: string, formData: FormData) => {
+  const processRazorpayPayment = async (orderId: string, userPhone: string) => {
     try {
-      // Create Razorpay order
+      // Create Razorpay order using server-verified amount
       const { data, error } = await supabase.functions.invoke('create-razorpay-order', {
-        body: {
-          amount: grandTotal,
-          currency: 'INR',
-          receipt: `order_${orderId}`,
-        },
+        body: { orderId },
       });
 
       if (error) throw new Error(error.message);
@@ -79,7 +94,6 @@ export default function Checkout() {
               .update({ payment_status: 'paid' })
               .eq('id', orderId);
 
-            await clearCart();
             setOrderPlaced(true);
             toast.success('Payment successful! Order placed.');
           } catch (err) {
@@ -90,7 +104,7 @@ export default function Checkout() {
         prefill: {
           name: user?.user_metadata?.full_name || '',
           email: user?.email || '',
-          contact: formData.get('phone') as string,
+          contact: userPhone,
         },
         theme: {
           color: '#f97316',
@@ -119,6 +133,8 @@ export default function Checkout() {
     e.preventDefault();
     if (!user) return;
     
+    setValidationErrors({});
+
     if (!minOrderMet) {
       toast.error(`Minimum order amount is ₹${settings.min_order_price}`);
       return;
@@ -134,42 +150,52 @@ export default function Checkout() {
       return;
     }
 
-    setIsSubmitting(true);
     const formData = new FormData(e.currentTarget);
+    
+    // Validate inputs using Zod
+    const rawData = {
+      address: formData.get('address') as string,
+      phone: (formData.get('phone') as string)?.replace(/[\s\-()]/g, ''),
+      notes: formData.get('notes') as string || null,
+      payment_method: paymentMethod,
+    };
+
+    const validationResult = checkoutSchema.safeParse(rawData);
+    
+    if (!validationResult.success) {
+      const errors: Record<string, string> = {};
+      validationResult.error.errors.forEach(err => {
+        const field = err.path[0] as string;
+        errors[field] = err.message;
+      });
+      setValidationErrors(errors);
+      toast.error('Please fix the form errors');
+      return;
+    }
+
+    const validatedData = validationResult.data;
+    setIsSubmitting(true);
 
     try {
-      // Create order
-      const { data: order, error: orderError } = await supabase
-        .from('orders')
-        .insert({
-          user_id: user.id,
-          total_amount: grandTotal,
-          delivery_address: formData.get('address') as string,
-          delivery_phone: formData.get('phone') as string,
-          delivery_notes: formData.get('notes') as string,
-          payment_method: paymentMethod,
-          status: 'pending',
-          payment_status: 'pending',
-        })
-        .select()
-        .single();
+      // Create order via secure edge function (server-side price verification)
+      const { data: orderResponse, error: orderError } = await supabase.functions.invoke('create-order', {
+        body: {
+          delivery_address: validatedData.address,
+          delivery_phone: validatedData.phone,
+          delivery_notes: validatedData.notes,
+          payment_method: validatedData.payment_method,
+        },
+      });
 
-      if (orderError) throw orderError;
+      if (orderError) {
+        throw new Error(orderError.message || 'Failed to create order');
+      }
 
-      // Create order items
-      const orderItems = items.map(item => ({
-        order_id: order.id,
-        menu_item_id: item.menuItem.id,
-        quantity: item.quantity,
-        unit_price: item.menuItem.price,
-        total_price: item.menuItem.price * item.quantity,
-      }));
+      if (!orderResponse?.order) {
+        throw new Error(orderResponse?.error || 'Failed to create order');
+      }
 
-      const { error: itemsError } = await supabase
-        .from('order_items')
-        .insert(orderItems);
-
-      if (itemsError) throw itemsError;
+      const order = orderResponse.order;
 
       // Send SMS notification to admin
       supabase.functions.invoke('send-sms', {
@@ -177,19 +203,21 @@ export default function Checkout() {
           type: 'new_order',
           data: {
             orderId: order.id,
-            amount: grandTotal,
-            phone: formData.get('phone') as string,
-            address: formData.get('address') as string,
+            amount: orderResponse.total_amount,
+            phone: validatedData.phone,
+            address: validatedData.address,
           },
         },
       }).catch(console.error);
 
+      // Clear local cart (server already cleared it)
+      await clearCart();
+
       // Process payment based on method
       if (paymentMethod === 'razorpay') {
-        await processRazorpayPayment(order.id, formData);
+        await processRazorpayPayment(order.id, validatedData.phone);
       } else {
         // Cash on delivery
-        await clearCart();
         setOrderPlaced(true);
         toast.success('Order placed successfully!');
         setIsSubmitting(false);
@@ -260,13 +288,19 @@ export default function Checkout() {
                   <div className="space-y-2">
                     <Label htmlFor="address">Full Address</Label>
                     <Textarea id="address" name="address" required placeholder="House no, Street, Area, City" rows={3} />
+                    {validationErrors.address && (
+                      <p className="text-sm text-destructive">{validationErrors.address}</p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="phone">Phone Number</Label>
                     <div className="relative">
                       <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input id="phone" name="phone" required placeholder="+880 1XXX-XXXXXX" className="pl-10" />
+                      <Input id="phone" name="phone" required placeholder="+919876543210" className="pl-10" />
                     </div>
+                    {validationErrors.phone && (
+                      <p className="text-sm text-destructive">{validationErrors.phone}</p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="notes">Delivery Notes (Optional)</Label>
@@ -286,7 +320,7 @@ export default function Checkout() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="space-y-3">
+                  <RadioGroup value={paymentMethod} onValueChange={(value) => setPaymentMethod(value as 'cash' | 'razorpay')} className="space-y-3">
                     <div className="flex items-center space-x-3 p-4 border border-border rounded-lg cursor-pointer hover:bg-muted/50">
                       <RadioGroupItem value="cash" id="cash" />
                       <Label htmlFor="cash" className="flex items-center gap-3 cursor-pointer flex-1">

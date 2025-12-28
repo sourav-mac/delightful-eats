@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CreditCard, Banknote, MapPin, Phone, FileText, CheckCircle } from 'lucide-react';
+import { CreditCard, Banknote, MapPin, Phone, FileText, CheckCircle, AlertCircle } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,25 +9,39 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useRestaurantSettings } from '@/hooks/useRestaurantSettings';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 export default function Checkout() {
   const { items, total, clearCart } = useCart();
   const { user } = useAuth();
+  const { settings, isLoading: settingsLoading } = useRestaurantSettings();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('cash');
   const [orderPlaced, setOrderPlaced] = useState(false);
 
-  const deliveryFee = 50;
+  const deliveryFee = settings.delivery_charge;
   const grandTotal = total + deliveryFee;
+  const minOrderMet = total >= settings.min_order_price;
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!user) return;
+    
+    if (!minOrderMet) {
+      toast.error(`Minimum order amount is ৳${settings.min_order_price}`);
+      return;
+    }
+
+    if (!settings.isOpen) {
+      toast.error('Sorry, we are currently closed');
+      return;
+    }
 
     setIsSubmitting(true);
     const formData = new FormData(e.currentTarget);
@@ -111,6 +125,23 @@ export default function Checkout() {
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Delivery Details */}
             <div className="lg:col-span-2 space-y-6">
+              {!settings.isOpen && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    We are currently closed. Operating hours: {settings.open_time} - {settings.close_time}
+                  </AlertDescription>
+                </Alert>
+              )}
+              
+              {!minOrderMet && (
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    Minimum order amount is ৳{settings.min_order_price}. Add ৳{(settings.min_order_price - total).toFixed(2)} more to proceed.
+                  </AlertDescription>
+                </Alert>
+              )}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -201,8 +232,13 @@ export default function Checkout() {
                     <span>Total</span>
                     <span className="text-primary">৳{grandTotal.toFixed(2)}</span>
                   </div>
-                  <Button type="submit" className="w-full" size="lg" disabled={isSubmitting}>
-                    {isSubmitting ? 'Placing Order...' : 'Place Order'}
+                  <Button 
+                    type="submit" 
+                    className="w-full" 
+                    size="lg" 
+                    disabled={isSubmitting || !minOrderMet || !settings.isOpen || settingsLoading}
+                  >
+                    {isSubmitting ? 'Placing Order...' : !settings.isOpen ? 'Restaurant Closed' : !minOrderMet ? `Add ৳${(settings.min_order_price - total).toFixed(2)} more` : 'Place Order'}
                   </Button>
                 </CardContent>
               </Card>

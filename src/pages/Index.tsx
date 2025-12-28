@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Layout } from '@/components/layout/Layout';
 import { supabase } from '@/integrations/supabase/client';
+import { useRestaurantSettings } from '@/hooks/useRestaurantSettings';
 
 interface MenuItem {
   id: string;
@@ -22,6 +23,7 @@ interface MenuItem {
 export default function Index() {
   const [popularDishes, setPopularDishes] = useState<MenuItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { settings } = useRestaurantSettings();
 
   useEffect(() => {
     fetchPopularDishes();
@@ -46,6 +48,18 @@ export default function Index() {
 
   return (
     <Layout>
+      {/* Restaurant Status Banner */}
+      <div className={`py-3 px-4 text-center text-sm font-medium ${settings.isOpen ? 'bg-green-500/10 text-green-700 dark:text-green-400' : 'bg-red-500/10 text-red-700 dark:text-red-400'}`}>
+        <div className="container flex items-center justify-center gap-2">
+          <span className={`inline-block w-2 h-2 rounded-full ${settings.isOpen ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
+          {settings.isOpen ? (
+            <span>We're Open! Serving from {settings.open_time} to {settings.close_time}</span>
+          ) : (
+            <span>We're Closed. Opening hours: {settings.open_time} - {settings.close_time}</span>
+          )}
+        </div>
+      </div>
+
       {/* Hero Section */}
       <section className="relative min-h-[80vh] flex items-center overflow-hidden">
         <div className="absolute inset-0 bg-hero-gradient opacity-95" />

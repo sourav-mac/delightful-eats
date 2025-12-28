@@ -10,6 +10,18 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Order } from '@/types/database';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 const statusConfig: Record<string, { icon: any; color: string; label: string }> = {
   pending: { icon: Clock, color: 'bg-accent text-accent-foreground', label: 'Pending' },
@@ -20,11 +32,15 @@ const statusConfig: Record<string, { icon: any; color: string; label: string }> 
   cancelled: { icon: XCircle, color: 'bg-destructive text-destructive-foreground', label: 'Cancelled' },
 };
 
+// Orders can only be cancelled before food preparation starts
+const CANCELLABLE_STATUSES = ['pending', 'confirmed'];
+
 export default function Orders() {
   const { user } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
+  const [cancellingOrderId, setCancellingOrderId] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) fetchOrders();
@@ -45,6 +61,26 @@ export default function Orders() {
 
     if (data) setOrders(data as any);
     setIsLoading(false);
+  };
+
+  const canCancelOrder = (order: Order) => {
+    return CANCELLABLE_STATUSES.includes(order.status);
+  };
+
+  const handleCancelOrder = async (orderId: string) => {
+    setCancellingOrderId(orderId);
+    const { error } = await supabase
+      .from('orders')
+      .update({ status: 'cancelled' })
+      .eq('id', orderId);
+
+    if (error) {
+      toast.error('Failed to cancel order');
+    } else {
+      toast.success('Order cancelled successfully');
+      fetchOrders();
+    }
+    setCancellingOrderId(null);
   };
 
   if (!user) {
@@ -111,6 +147,37 @@ export default function Orders() {
                           {status.label}
                         </Badge>
                         <span className="font-bold text-primary">₹{order.total_amount}</span>
+                        {canCancelOrder(order) && (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                Cancel
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Cancel Order?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to cancel this order? This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>No, keep it</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleCancelOrder(order.id)}
+                                  disabled={cancellingOrderId === order.id}
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                >
+                                  {cancellingOrderId === order.id ? 'Cancelling...' : 'Yes, cancel order'}
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        )}
                       </div>
                     </div>
                   </CardHeader>

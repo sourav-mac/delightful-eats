@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, UtensilsCrossed, Clock, Star, Users, Flame, Leaf } from 'lucide-react';
+import { ArrowRight, UtensilsCrossed, Clock, Star, Users, Flame, Leaf, CalendarDays } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -83,7 +83,10 @@ export default function Index() {
                 </Link>
               </Button>
               <Button size="lg" variant="secondary" className="bg-white/20 border border-white/40 text-white hover:bg-white/30 backdrop-blur-sm" asChild>
-                <Link to="/reservations">Book a Table</Link>
+                <Link to="/reservations">
+                  <CalendarDays className="mr-2 h-5 w-5" />
+                  Book a Table
+                </Link>
               </Button>
             </div>
           </div>

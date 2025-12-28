@@ -17,6 +17,7 @@ import Reviews from "./pages/Reviews";
 import Orders from "./pages/Orders";
 import Profile from "./pages/Profile";
 import AdminDashboard from "./pages/admin/Dashboard";
+import AdminLogin from "./pages/admin/Login";
 import AdminAnalytics from "./pages/admin/Analytics";
 import AdminOrders from "./pages/admin/Orders";
 import AdminMenuItems from "./pages/admin/MenuItems";
@@ -50,7 +51,8 @@ const App = () => (
               <Route path="/orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
               
-{/* Admin Only Routes - Completely Private */}
+{/* Admin Only Routes - Completely Private with Separate Login */}
+              <Route path="/admin/login" element={<AdminLogin />} />
               <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
               <Route path="/admin/analytics" element={<AdminRoute><AdminAnalytics /></AdminRoute>} />
               <Route path="/admin/orders" element={<AdminRoute><AdminOrders /></AdminRoute>} />

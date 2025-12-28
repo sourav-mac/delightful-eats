@@ -61,9 +61,9 @@ export function AdminRoute({ children }: AdminRouteProps) {
     );
   }
 
-  // Not logged in - redirect to auth page
+  // Not logged in - redirect to admin login page
   if (!user) {
-    return <Navigate to="/auth" state={{ from: location }} replace />;
+    return <Navigate to="/admin/login" state={{ from: location }} replace />;
   }
 
   // Logged in but not admin (either context or verified) - redirect to home silently

@@ -43,12 +43,12 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       {/* Sidebar */}
       <aside 
         className={cn(
-          "fixed left-0 top-0 h-full bg-card border-r border-border transition-all duration-300 z-40",
+          "fixed left-0 top-0 h-full bg-card border-r border-border transition-all duration-300 z-40 flex flex-col",
           collapsed ? "w-16" : "w-64"
         )}
       >
         {/* Logo */}
-        <div className="h-16 flex items-center justify-between px-4 border-b border-border">
+        <div className="h-16 flex items-center justify-between px-4 border-b border-border flex-shrink-0">
           {!collapsed && (
             <div className="flex items-center gap-2">
               <span className="text-xl font-display font-bold text-primary">পেটুক</span>
@@ -65,8 +65,8 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
           </Button>
         </div>
 
-        {/* Navigation */}
-        <nav className="p-2 space-y-1">
+        {/* Navigation - scrollable area */}
+        <nav className="flex-1 overflow-y-auto p-2 space-y-1">
           {navItems.map((item) => {
             const isActive = item.exact 
               ? location.pathname === item.href 
@@ -90,8 +90,8 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
           })}
         </nav>
 
-        {/* Bottom actions */}
-        <div className="absolute bottom-0 left-0 right-0 p-2 border-t border-border space-y-1">
+        {/* Bottom actions - fixed at bottom */}
+        <div className="flex-shrink-0 p-2 border-t border-border bg-card">
           <button
             onClick={handleSignOut}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-destructive hover:bg-destructive/10 transition-colors"

@@ -100,9 +100,9 @@ export function MenuCard({ item }: MenuCardProps) {
         {/* Price & Add to Cart */}
         <div className="flex items-center justify-between pt-2 border-t border-border">
           <div className="flex items-baseline gap-2">
-            <span className="text-xl font-bold text-primary">৳{item.price}</span>
+            <span className="text-xl font-bold text-primary">₹{item.price}</span>
             {item.original_price && (
-              <span className="text-sm text-muted-foreground line-through">৳{item.original_price}</span>
+              <span className="text-sm text-muted-foreground line-through">₹{item.original_price}</span>
             )}
           </div>
 

@@ -120,7 +120,7 @@ export default function Checkout() {
     if (!user) return;
     
     if (!minOrderMet) {
-      toast.error(`Minimum order amount is ৳${settings.min_order_price}`);
+      toast.error(`Minimum order amount is ₹${settings.min_order_price}`);
       return;
     }
 
@@ -245,7 +245,7 @@ export default function Checkout() {
                 <Alert>
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>
-                    Minimum order amount is ৳{settings.min_order_price}. Add ৳{(settings.min_order_price - total).toFixed(2)} more to proceed.
+                    Minimum order amount is ₹{settings.min_order_price}. Add ₹{(settings.min_order_price - total).toFixed(2)} more to proceed.
                   </AlertDescription>
                 </Alert>
               )}
@@ -322,22 +322,22 @@ export default function Checkout() {
                   {items.map((item) => (
                     <div key={item.id} className="flex justify-between text-sm">
                       <span className="text-muted-foreground">{item.menuItem.name} × {item.quantity}</span>
-                      <span>৳{(item.menuItem.price * item.quantity).toFixed(2)}</span>
+                      <span>₹{(item.menuItem.price * item.quantity).toFixed(2)}</span>
                     </div>
                   ))}
                   <Separator />
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Subtotal</span>
-                    <span>৳{total.toFixed(2)}</span>
+                    <span>₹{total.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Delivery Fee</span>
-                    <span>৳{deliveryFee}</span>
+                    <span>₹{deliveryFee}</span>
                   </div>
                   <Separator />
                   <div className="flex justify-between font-bold text-lg">
                     <span>Total</span>
-                    <span className="text-primary">৳{grandTotal.toFixed(2)}</span>
+                    <span className="text-primary">₹{grandTotal.toFixed(2)}</span>
                   </div>
                   <Button 
                     type="submit" 
@@ -345,7 +345,7 @@ export default function Checkout() {
                     size="lg" 
                     disabled={isSubmitting || !minOrderMet || !settings.isOpen || settingsLoading}
                   >
-                    {isSubmitting ? 'Processing...' : !settings.isOpen ? 'Restaurant Closed' : !minOrderMet ? `Add ৳${(settings.min_order_price - total).toFixed(2)} more` : paymentMethod === 'razorpay' ? 'Pay Now' : 'Place Order'}
+                    {isSubmitting ? 'Processing...' : !settings.isOpen ? 'Restaurant Closed' : !minOrderMet ? `Add ₹${(settings.min_order_price - total).toFixed(2)} more` : paymentMethod === 'razorpay' ? 'Pay Now' : 'Place Order'}
                   </Button>
                 </CardContent>
               </Card>

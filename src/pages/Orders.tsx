@@ -110,7 +110,7 @@ export default function Orders() {
                           <StatusIcon className="h-3 w-3 mr-1" />
                           {status.label}
                         </Badge>
-                        <span className="font-bold text-primary">৳{order.total_amount}</span>
+                        <span className="font-bold text-primary">₹{order.total_amount}</span>
                       </div>
                     </div>
                   </CardHeader>
@@ -125,7 +125,7 @@ export default function Orders() {
                               <span>
                                 {item.menu_items?.name || 'Item'} × {item.quantity}
                               </span>
-                              <span>৳{item.total_price}</span>
+                              <span>₹{item.total_price}</span>
                             </div>
                           ))}
                         </div>

@@ -19,9 +19,29 @@ export function useRestaurantSettings() {
   });
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    fetchSettings();
-  }, []);
+  const parseSettings = (data: { setting_key: string; setting_value: string }[]) => {
+    const settingsMap: Record<string, string> = {};
+    data.forEach((row) => {
+      settingsMap[row.setting_key] = row.setting_value;
+    });
+
+    const openTime = settingsMap.open_time || '10:00';
+    const closeTime = settingsMap.close_time || '22:00';
+    const minOrderPrice = parseFloat(settingsMap.min_order_price) || 100;
+    const deliveryCharge = parseFloat(settingsMap.delivery_charge) || 50;
+
+    const now = new Date();
+    const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+    const isOpen = currentTime >= openTime && currentTime <= closeTime;
+
+    return {
+      open_time: openTime,
+      close_time: closeTime,
+      min_order_price: minOrderPrice,
+      delivery_charge: deliveryCharge,
+      isOpen,
+    };
+  };
 
   const fetchSettings = async () => {
     const { data, error } = await supabase
@@ -31,31 +51,34 @@ export function useRestaurantSettings() {
     if (error) {
       console.error('Failed to load settings:', error);
     } else if (data) {
-      const settingsMap: Record<string, string> = {};
-      data.forEach((row: { setting_key: string; setting_value: string }) => {
-        settingsMap[row.setting_key] = row.setting_value;
-      });
-
-      const openTime = settingsMap.open_time || '10:00';
-      const closeTime = settingsMap.close_time || '22:00';
-      const minOrderPrice = parseFloat(settingsMap.min_order_price) || 100;
-      const deliveryCharge = parseFloat(settingsMap.delivery_charge) || 50;
-
-      // Check if currently open
-      const now = new Date();
-      const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-      const isOpen = currentTime >= openTime && currentTime <= closeTime;
-
-      setSettings({
-        open_time: openTime,
-        close_time: closeTime,
-        min_order_price: minOrderPrice,
-        delivery_charge: deliveryCharge,
-        isOpen,
-      });
+      setSettings(parseSettings(data));
     }
     setIsLoading(false);
   };
+
+  useEffect(() => {
+    fetchSettings();
+
+    // Subscribe to real-time changes
+    const channel = supabase
+      .channel('restaurant-settings-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'restaurant_settings',
+        },
+        () => {
+          fetchSettings();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   return { settings, isLoading, refetch: fetchSettings };
 }

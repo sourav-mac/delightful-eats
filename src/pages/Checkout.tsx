@@ -22,7 +22,7 @@ declare global {
   }
 }
 
-const RAZORPAY_KEY_ID = 'rzp_test_RrcPAcvB65TfFu';
+
 
 export default function Checkout() {
   const { items, total, clearCart } = useCart();
@@ -65,7 +65,7 @@ export default function Checkout() {
       if (error) throw new Error(error.message);
 
       const options = {
-        key: RAZORPAY_KEY_ID,
+        key: data.keyId,
         amount: data.amount,
         currency: data.currency,
         name: 'Your Restaurant',

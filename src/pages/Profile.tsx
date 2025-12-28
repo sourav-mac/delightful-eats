@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Profile as ProfileType } from '@/types/database';
@@ -83,6 +83,10 @@ export default function Profile() {
             <CardContent className="pt-6">
               <div className="flex items-center gap-4">
                 <Avatar className="h-20 w-20">
+                  <AvatarImage 
+                    src={profile?.avatar_url || user.user_metadata?.avatar_url} 
+                    alt={profile?.full_name || 'User'} 
+                  />
                   <AvatarFallback className="bg-primary text-primary-foreground text-2xl">
                     {profile?.full_name?.charAt(0)?.toUpperCase() || user.email?.charAt(0)?.toUpperCase() || 'U'}
                   </AvatarFallback>

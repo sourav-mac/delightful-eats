@@ -237,6 +237,24 @@ export type Database = {
         }
         Relationships: []
       }
+      otp_rate_limits: {
+        Row: {
+          attempts: number
+          phone: string
+          window_start: string
+        }
+        Insert: {
+          attempts?: number
+          phone: string
+          window_start?: string
+        }
+        Update: {
+          attempts?: number
+          phone?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
       phone_otps: {
         Row: {
           created_at: string
@@ -430,7 +448,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_otp_rate_limit: {
+        Args: {
+          p_max_attempts?: number
+          p_phone: string
+          p_window_minutes?: number
+        }
+        Returns: boolean
+      }
       cleanup_expired_otps: { Args: never; Returns: undefined }
+      cleanup_old_rate_limits: { Args: never; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

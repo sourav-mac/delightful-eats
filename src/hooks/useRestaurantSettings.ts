@@ -6,7 +6,6 @@ export interface RestaurantSettings {
   close_time: string;
   min_order_price: number;
   delivery_charge: number;
-  whatsapp_number: string;
   isOpen: boolean;
 }
 
@@ -16,7 +15,6 @@ export function useRestaurantSettings() {
     close_time: '22:00',
     min_order_price: 100,
     delivery_charge: 50,
-    whatsapp_number: '',
     isOpen: true,
   });
   const [isLoading, setIsLoading] = useState(true);
@@ -31,7 +29,6 @@ export function useRestaurantSettings() {
     const closeTime = settingsMap.close_time || '22:00';
     const minOrderPrice = parseFloat(settingsMap.min_order_price) || 100;
     const deliveryCharge = parseFloat(settingsMap.delivery_charge) || 50;
-    const whatsappNumber = settingsMap.whatsapp_number || '';
 
     const now = new Date();
     const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
@@ -42,7 +39,6 @@ export function useRestaurantSettings() {
       close_time: closeTime,
       min_order_price: minOrderPrice,
       delivery_charge: deliveryCharge,
-      whatsapp_number: whatsappNumber,
       isOpen,
     };
   };

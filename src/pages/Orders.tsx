@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Package, Clock, CheckCircle, XCircle, Truck, ChefHat, MessageCircle } from 'lucide-react';
+import { Package, Clock, CheckCircle, XCircle, Truck, ChefHat } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,7 +10,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Order } from '@/types/database';
 import { format } from 'date-fns';
-import { useRestaurantSettings } from '@/hooks/useRestaurantSettings';
 
 const statusConfig: Record<string, { icon: any; color: string; label: string }> = {
   pending: { icon: Clock, color: 'bg-accent text-accent-foreground', label: 'Pending' },
@@ -23,19 +22,9 @@ const statusConfig: Record<string, { icon: any; color: string; label: string }> 
 
 export default function Orders() {
   const { user } = useAuth();
-  const { settings } = useRestaurantSettings();
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
-
-  const generateWhatsAppLink = (order: Order) => {
-    if (!settings.whatsapp_number) return null;
-    const phone = settings.whatsapp_number.replace(/\D/g, '');
-    const message = encodeURIComponent(
-      `Hi! I'd like to track my order #${order.id.slice(0, 8).toUpperCase()}\n\nOrder Total: ৳${order.total_amount}\nStatus: ${order.status}`
-    );
-    return `https://wa.me/${phone}?text=${message}`;
-  };
 
   useEffect(() => {
     if (user) fetchOrders();
@@ -170,27 +159,6 @@ export default function Orders() {
                             <p className="text-muted-foreground text-sm">Delivery Notes</p>
                             <p className="text-sm">{order.delivery_notes}</p>
                           </div>
-                        </>
-                      )}
-
-                      {/* WhatsApp Contact */}
-                      {generateWhatsAppLink(order) && (
-                        <>
-                          <Separator />
-                          <Button
-                            variant="outline"
-                            className="w-full bg-green-500/10 border-green-500/30 text-green-700 hover:bg-green-500/20 dark:text-green-400"
-                            asChild
-                          >
-                            <a
-                              href={generateWhatsAppLink(order)!}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              <MessageCircle className="h-4 w-4 mr-2" />
-                              Track Order via WhatsApp
-                            </a>
-                          </Button>
                         </>
                       )}
                     </CardContent>

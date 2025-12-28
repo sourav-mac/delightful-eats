@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Save, Clock, DollarSign, Truck, MessageCircle } from 'lucide-react';
+import { Save, Clock, DollarSign, Truck } from 'lucide-react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,7 +13,6 @@ interface Settings {
   close_time: string;
   min_order_price: string;
   delivery_charge: string;
-  whatsapp_number: string;
 }
 
 export default function AdminSettings() {
@@ -22,7 +21,6 @@ export default function AdminSettings() {
     close_time: '22:00',
     min_order_price: '100',
     delivery_charge: '50',
-    whatsapp_number: '',
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -49,7 +47,6 @@ export default function AdminSettings() {
         close_time: settingsMap.close_time || '22:00',
         min_order_price: settingsMap.min_order_price || '100',
         delivery_charge: settingsMap.delivery_charge || '50',
-        whatsapp_number: settingsMap.whatsapp_number || '',
       });
     }
     setIsLoading(false);
@@ -186,32 +183,6 @@ export default function AdminSettings() {
               </div>
             </CardContent>
           </Card>
-
-          {/* WhatsApp Settings */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MessageCircle className="h-5 w-5 text-primary" />
-                WhatsApp Integration
-              </CardTitle>
-              <CardDescription>Configure WhatsApp for order updates</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="whatsapp_number">WhatsApp Number</Label>
-                <Input
-                  id="whatsapp_number"
-                  type="tel"
-                  placeholder="+8801XXXXXXXXX"
-                  value={settings.whatsapp_number}
-                  onChange={(e) => handleChange('whatsapp_number', e.target.value)}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Include country code (e.g., +880 for Bangladesh)
-                </p>
-              </div>
-            </CardContent>
-          </Card>
         </div>
 
         {/* Preview */}
@@ -220,7 +191,7 @@ export default function AdminSettings() {
             <CardTitle>Current Settings Preview</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4 md:grid-cols-5">
+            <div className="grid gap-4 md:grid-cols-4">
               <div className="p-4 rounded-lg bg-muted/50 text-center">
                 <p className="text-sm text-muted-foreground">Opens At</p>
                 <p className="text-2xl font-bold text-primary">{settings.open_time}</p>
@@ -236,10 +207,6 @@ export default function AdminSettings() {
               <div className="p-4 rounded-lg bg-muted/50 text-center">
                 <p className="text-sm text-muted-foreground">Delivery</p>
                 <p className="text-2xl font-bold text-primary">৳{settings.delivery_charge}</p>
-              </div>
-              <div className="p-4 rounded-lg bg-muted/50 text-center">
-                <p className="text-sm text-muted-foreground">WhatsApp</p>
-                <p className="text-sm font-bold text-primary truncate">{settings.whatsapp_number || 'Not set'}</p>
               </div>
             </div>
           </CardContent>

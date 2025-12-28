@@ -82,7 +82,7 @@ export default function Index() {
                   Explore Menu <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
-              <Button size="lg" variant="outline" className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10" asChild>
+              <Button size="lg" variant="secondary" className="bg-white/20 border border-white/40 text-white hover:bg-white/30 backdrop-blur-sm" asChild>
                 <Link to="/reservations">Book a Table</Link>
               </Button>
             </div>

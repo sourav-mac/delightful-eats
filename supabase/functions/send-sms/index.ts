@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -15,7 +16,85 @@ serve(async (req) => {
   }
 
   try {
+    // Verify user authentication
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      console.error('No authorization header provided');
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      console.error('Auth error:', authError?.message);
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const { type, data } = await req.json();
+    
+    // Validate the user has permission for the requested action
+    // For new_order: verify the order belongs to the user
+    // For order_status/reservation_status: verify admin role or ownership
+    if (type === 'new_order' && data.orderId) {
+      const { data: order, error: orderError } = await supabase
+        .from('orders')
+        .select('id, user_id')
+        .eq('id', data.orderId)
+        .eq('user_id', user.id)
+        .single();
+      
+      if (orderError || !order) {
+        console.error('Order verification failed:', orderError?.message);
+        return new Response(JSON.stringify({ error: 'Order not found or unauthorized' }), {
+          status: 403,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+    } else if (type === 'order_status' || type === 'reservation_status') {
+      // Check if user is admin for status update notifications
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .eq('role', 'admin')
+        .single();
+      
+      if (!roleData) {
+        console.error('Admin verification failed for status update');
+        return new Response(JSON.stringify({ error: 'Admin access required' }), {
+          status: 403,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+    } else if (type === 'new_reservation' && data.reservationId) {
+      const { data: reservation, error: resError } = await supabase
+        .from('reservations')
+        .select('id, user_id')
+        .eq('id', data.reservationId)
+        .eq('user_id', user.id)
+        .single();
+      
+      if (resError || !reservation) {
+        console.error('Reservation verification failed');
+        return new Response(JSON.stringify({ error: 'Reservation not found or unauthorized' }), {
+          status: 403,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+    }
+
     const authToken = Deno.env.get('TWILIO_AUTH_TOKEN');
 
     if (!authToken) {
@@ -34,7 +113,7 @@ serve(async (req) => {
         break;
 
       case 'order_status':
-        // Notify user about order status change
+        // Notify user about order status change (admin only)
         if (data.userPhone) {
           const statusMessages: Record<string, string> = {
             confirmed: '✅ Your order has been confirmed and is being prepared!',
@@ -60,7 +139,7 @@ serve(async (req) => {
         break;
 
       case 'reservation_status':
-        // Notify user about reservation status change
+        // Notify user about reservation status change (admin only)
         if (data.userPhone) {
           const statusMessages: Record<string, string> = {
             confirmed: '✅ Your reservation has been confirmed! We look forward to seeing you.',

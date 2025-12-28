@@ -88,18 +88,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
-    // Clear local state first to ensure UI updates immediately
-    setUser(null);
-    setSession(null);
+    await supabase.auth.signOut();
     setIsAdmin(false);
-    
-    // Then attempt to sign out from server (ignore errors as session might already be invalid)
-    try {
-      await supabase.auth.signOut({ scope: 'local' });
-    } catch (error) {
-      // Session might already be invalidated on server, that's fine
-      console.log('Sign out completed');
-    }
   };
 
   return (

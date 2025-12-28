@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Review, MenuItem } from '@/types/database';
@@ -27,12 +27,33 @@ export default function Reviews() {
   }, []);
 
   const fetchReviews = async () => {
-    const { data } = await supabase
+    const { data: reviewsData } = await supabase
       .from('reviews')
       .select('*')
       .eq('is_approved', true)
       .order('created_at', { ascending: false });
-    if (data) setReviews(data as Review[]);
+    
+    if (reviewsData && reviewsData.length > 0) {
+      // Get unique user IDs
+      const userIds = [...new Set(reviewsData.map(r => r.user_id).filter(Boolean))] as string[];
+      
+      // Fetch profiles for these users
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('*')
+        .in('id', userIds);
+      
+      // Map profiles to reviews
+      const profilesMap = new Map(profilesData?.map(p => [p.id, p]) || []);
+      const reviewsWithProfiles = reviewsData.map(review => ({
+        ...review,
+        profile: review.user_id ? (profilesMap.get(review.user_id) as Review['profile']) : undefined
+      })) as Review[];
+      
+      setReviews(reviewsWithProfiles);
+    } else {
+      setReviews([]);
+    }
   };
 
   const fetchMenuItems = async () => {
@@ -92,8 +113,14 @@ export default function Reviews() {
                   <CardContent className="p-6">
                     <div className="flex gap-4">
                       <Avatar className="h-10 w-10">
+                        <AvatarImage 
+                          src={review.profile?.avatar_url || undefined} 
+                          alt={review.profile?.full_name || 'User'} 
+                        />
                         <AvatarFallback className="bg-primary text-primary-foreground">
-                          {review.user_id?.slice(0, 2).toUpperCase() || 'G'}
+                          {review.profile?.full_name?.charAt(0)?.toUpperCase() || 
+                           review.profile?.phone?.slice(-2) || 
+                           'G'}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1">

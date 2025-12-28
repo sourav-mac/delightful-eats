@@ -79,25 +79,38 @@ export default function Checkout() {
 
       if (error) throw new Error(error.message);
 
+      const razorpayOrderId = data.orderId;
+
       const options = {
         key: data.keyId,
         amount: data.amount,
         currency: data.currency,
         name: 'Your Restaurant',
         description: `Order #${orderId.slice(0, 8)}`,
-        order_id: data.orderId,
+        order_id: razorpayOrderId,
         handler: async function (response: any) {
-          // Payment successful
+          // Verify payment on server-side - NEVER trust client-side payment confirmation
           try {
-            await supabase
-              .from('orders')
-              .update({ payment_status: 'paid' })
-              .eq('id', orderId);
+            const { data: verifyData, error: verifyError } = await supabase.functions.invoke('verify-razorpay-payment', {
+              body: {
+                dbOrderId: orderId,
+                razorpayOrderId: razorpayOrderId,
+                razorpayPaymentId: response.razorpay_payment_id,
+                razorpaySignature: response.razorpay_signature,
+              },
+            });
+
+            if (verifyError || !verifyData?.success) {
+              toast.error(verifyData?.error || 'Payment verification failed');
+              setIsSubmitting(false);
+              return;
+            }
 
             setOrderPlaced(true);
-            toast.success('Payment successful! Order placed.');
+            toast.success('Payment verified! Order placed.');
           } catch (err) {
-            toast.error('Order placed but status update failed');
+            console.error('Payment verification error:', err);
+            toast.error('Payment verification failed. Please contact support.');
           }
           setIsSubmitting(false);
         },

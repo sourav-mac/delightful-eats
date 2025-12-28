@@ -91,11 +91,11 @@ export default function Profile() {
                     {profile?.full_name?.charAt(0)?.toUpperCase() || user.email?.charAt(0)?.toUpperCase() || 'U'}
                   </AvatarFallback>
                 </Avatar>
-                <div>
-                  <h2 className="text-xl font-display font-semibold">
+                <div className="min-w-0 flex-1">
+                  <h2 className="text-xl font-display font-semibold truncate">
                     {profile?.full_name || 'User'}
                   </h2>
-                  <p className="text-muted-foreground">{user.email}</p>
+                  <p className="text-muted-foreground text-sm break-all">{user.email}</p>
                 </div>
               </div>
             </CardContent>

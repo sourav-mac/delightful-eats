@@ -40,11 +40,27 @@ export default function AdminOrders() {
   };
 
   const updateStatus = async (orderId: string, newStatus: string) => {
+    const order = orders.find(o => o.id === orderId);
     const { error } = await supabase.from('orders').update({ status: newStatus }).eq('id', orderId);
     if (error) {
       toast.error('Failed to update status');
     } else {
       toast.success('Order status updated');
+      
+      // Send SMS notification to user
+      if (order?.delivery_phone) {
+        supabase.functions.invoke('send-sms', {
+          body: {
+            type: 'order_status',
+            data: {
+              orderId,
+              status: newStatus,
+              userPhone: order.delivery_phone,
+            },
+          },
+        }).catch(console.error);
+      }
+      
       fetchOrders();
     }
   };

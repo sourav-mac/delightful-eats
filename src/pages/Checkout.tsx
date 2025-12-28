@@ -171,6 +171,19 @@ export default function Checkout() {
 
       if (itemsError) throw itemsError;
 
+      // Send SMS notification to admin
+      supabase.functions.invoke('send-sms', {
+        body: {
+          type: 'new_order',
+          data: {
+            orderId: order.id,
+            amount: grandTotal,
+            phone: formData.get('phone') as string,
+            address: formData.get('address') as string,
+          },
+        },
+      }).catch(console.error);
+
       // Process payment based on method
       if (paymentMethod === 'razorpay') {
         await processRazorpayPayment(order.id, formData);

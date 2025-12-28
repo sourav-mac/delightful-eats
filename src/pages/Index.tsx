@@ -57,7 +57,9 @@ export default function Index() {
         <div className="container relative z-10 py-20">
           <div className="max-w-2xl space-y-6 text-primary-foreground">
             {/* Restaurant Status Badge */}
-            <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium backdrop-blur-sm animate-fade-in ${settings.isOpen ? 'bg-green-500/20 text-green-200 border border-green-400/30' : 'bg-red-500/20 text-red-200 border border-red-400/30'}`}>
+            <div 
+              className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium backdrop-blur-sm animate-fade-in ${settings.isOpen ? 'bg-green-500/20 text-green-200 border border-green-400/30' : 'bg-red-500/20 text-red-200 border border-red-400/30'}`}
+            >
               <span className={`inline-block w-2 h-2 rounded-full ${settings.isOpen ? 'bg-green-400 animate-pulse' : 'bg-red-400'}`} />
               {settings.isOpen ? (
                 <span>Open Now · {settings.open_time} - {settings.close_time}</span>
@@ -66,15 +68,24 @@ export default function Index() {
               )}
             </div>
             
-            <h1 className="text-5xl md:text-7xl font-display font-bold leading-tight">
+            <h1 
+              className="text-5xl md:text-7xl font-display font-bold leading-tight animate-fade-in opacity-0"
+              style={{ animationDelay: '150ms', animationFillMode: 'forwards' }}
+            >
               Authentic Indian Bengali <br />
               <span className="font-bengali">রান্নাঘর</span> Kitchen
             </h1>
-            <p className="text-lg md:text-xl opacity-90">
+            <p 
+              className="text-lg md:text-xl opacity-0 animate-fade-in"
+              style={{ animationDelay: '300ms', animationFillMode: 'forwards' }}
+            >
               Experience the rich culinary heritage of Kolkata and Bengal. From aromatic Ilish Bhapa to 
               legendary Kosha Mangsho, every dish is crafted with love and tradition.
             </p>
-            <div className="flex flex-wrap gap-4 pt-4">
+            <div 
+              className="flex flex-wrap gap-4 pt-4 animate-fade-in opacity-0"
+              style={{ animationDelay: '450ms', animationFillMode: 'forwards' }}
+            >
               <Button size="lg" variant="secondary" asChild>
                 <Link to="/menu">
                   <UtensilsCrossed className="mr-2 h-5 w-5" />

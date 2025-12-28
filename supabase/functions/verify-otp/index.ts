@@ -1,9 +1,21 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createHash } from "node:crypto";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// Generate an unpredictable hashed email from phone number
+function generateSecurePhoneEmail(phone: string): string {
+  const secret = Deno.env.get("PHONE_HASH_SECRET") || Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "default-secret";
+  const hash = createHash("sha256")
+    .update(phone + secret)
+    .digest("hex")
+    .substring(0, 16);
+  
+  return `${hash}@phone.internal`;
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -111,12 +123,12 @@ Deno.serve(async (req) => {
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     } else {
-      // New user - create account with phone
-      const tempEmail = `${phone.replace(/\+/g, "")}@phone.temp`;
+      // New user - create account with secure hashed email
+      const secureEmail = generateSecurePhoneEmail(phone);
       const tempPassword = crypto.randomUUID();
 
       const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
-        email: tempEmail,
+        email: secureEmail,
         password: tempPassword,
         email_confirm: true,
         phone: phone,
@@ -147,7 +159,7 @@ Deno.serve(async (req) => {
       // Generate session token for new user
       const { data: tokenData, error: tokenError } = await supabase.auth.admin.generateLink({
         type: "magiclink",
-        email: tempEmail,
+        email: secureEmail,
         options: {
           redirectTo: `${req.headers.get("origin")}/`,
         },

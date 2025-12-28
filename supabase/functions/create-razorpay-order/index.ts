@@ -18,8 +18,12 @@ serve(async (req) => {
     const shortReceipt = receipt ? receipt.slice(0, 40) : `rcpt_${Date.now()}`;
     console.log('Creating Razorpay order:', { amount, currency, receipt: shortReceipt });
 
-    const keyId = 'rzp_test_RrcPAcvB65TfFu';
+    const keyId = Deno.env.get('RAZORPAY_KEY_ID');
     const keySecret = Deno.env.get('RAZORPAY_KEY_SECRET');
+
+    if (!keyId) {
+      throw new Error('Razorpay key ID not configured');
+    }
 
     if (!keySecret) {
       throw new Error('Razorpay secret key not configured');

@@ -30,15 +30,31 @@ export default function Auth() {
 
   // Check if user came from password reset email
   useEffect(() => {
+    // Listen for PASSWORD_RECOVERY event from Supabase
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setShowUpdatePassword(true);
+      }
+    });
+
+    // Also check on mount if there's a recovery token in the URL
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const type = hashParams.get('type');
+    if (type === 'recovery') {
+      setShowUpdatePassword(true);
+    }
+
+    // Check if redirected with reset=true and has a session
     const isReset = searchParams.get('reset') === 'true';
     if (isReset) {
-      // Check if user has a valid session from the reset link
       supabase.auth.getSession().then(({ data: { session } }) => {
         if (session) {
           setShowUpdatePassword(true);
         }
       });
     }
+
+    return () => subscription.unsubscribe();
   }, [searchParams]);
 
   const handleUpdatePassword = async (e: React.FormEvent<HTMLFormElement>) => {

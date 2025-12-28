@@ -9,7 +9,6 @@ import {
   MessageSquare,
   ChevronLeft,
   LogOut,
-  Home,
   BarChart3,
   Settings
 } from 'lucide-react';
@@ -93,13 +92,6 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
 
         {/* Bottom actions */}
         <div className="absolute bottom-0 left-0 right-0 p-2 border-t border-border space-y-1">
-          <Link
-            to="/"
-            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-          >
-            <Home className="h-5 w-5 flex-shrink-0" />
-            {!collapsed && <span className="font-medium">Back to Site</span>}
-          </Link>
           <button
             onClick={handleSignOut}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-destructive hover:bg-destructive/10 transition-colors"

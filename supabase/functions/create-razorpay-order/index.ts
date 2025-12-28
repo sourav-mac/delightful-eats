@@ -14,7 +14,9 @@ serve(async (req) => {
   try {
     const { amount, currency = 'INR', receipt } = await req.json();
 
-    console.log('Creating Razorpay order:', { amount, currency, receipt });
+    // Razorpay receipt max length is 40 characters
+    const shortReceipt = receipt ? receipt.slice(0, 40) : `rcpt_${Date.now()}`;
+    console.log('Creating Razorpay order:', { amount, currency, receipt: shortReceipt });
 
     const keyId = 'rzp_test_RrcPAcvB65TfFu';
     const keySecret = Deno.env.get('RAZORPAY_KEY_SECRET');
@@ -33,7 +35,7 @@ serve(async (req) => {
       body: JSON.stringify({
         amount: Math.round(amount * 100), // Razorpay expects amount in paise
         currency,
-        receipt,
+        receipt: shortReceipt,
       }),
     });
 

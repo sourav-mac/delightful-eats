@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { CalendarDays, Clock, Users, Phone, Mail, FileText, CheckCircle } from 'lucide-react';
+import { CalendarDays, Clock, Users, CheckCircle } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,7 +12,18 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Reservation } from '@/types/database';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
+import { format, differenceInHours, parseISO } from 'date-fns';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 const timeSlots = [
   '11:00', '11:30', '12:00', '12:30', '13:00', '13:30', '14:00', '14:30',
@@ -24,6 +35,7 @@ export default function Reservations() {
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) fetchReservations();
@@ -36,6 +48,30 @@ export default function Reservations() {
       .eq('user_id', user?.id)
       .order('reservation_date', { ascending: false });
     if (data) setReservations(data as Reservation[]);
+  };
+
+  // Can cancel if reservation is 24+ hours away and not already cancelled
+  const canCancelReservation = (reservation: Reservation) => {
+    if (reservation.status === 'cancelled') return false;
+    const reservationDateTime = parseISO(`${reservation.reservation_date}T${reservation.reservation_time}`);
+    const hoursUntilReservation = differenceInHours(reservationDateTime, new Date());
+    return hoursUntilReservation >= 24;
+  };
+
+  const handleCancelReservation = async (reservationId: string) => {
+    setCancellingId(reservationId);
+    const { error } = await supabase
+      .from('reservations')
+      .update({ status: 'cancelled' })
+      .eq('id', reservationId);
+
+    if (error) {
+      toast.error('Failed to cancel reservation');
+    } else {
+      toast.success('Reservation cancelled successfully');
+      fetchReservations();
+    }
+    setCancellingId(null);
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -202,7 +238,7 @@ export default function Reservations() {
                 ) : (
                   <div className="space-y-4">
                     {reservations.slice(0, 5).map((res) => (
-                      <div key={res.id} className="p-4 border border-border rounded-lg space-y-2">
+                      <div key={res.id} className="p-4 border border-border rounded-lg space-y-3">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <CalendarDays className="h-4 w-4 text-primary" />
@@ -218,6 +254,33 @@ export default function Reservations() {
                             <Users className="h-3 w-3" /> {res.party_size} guests
                           </span>
                         </div>
+                        {canCancelReservation(res) && (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="destructive" size="sm" className="w-full">
+                                Cancel Reservation
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Cancel Reservation?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to cancel this reservation for {format(new Date(res.reservation_date), 'MMM d, yyyy')} at {res.reservation_time}? This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>No, keep it</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleCancelReservation(res.id)}
+                                  disabled={cancellingId === res.id}
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                >
+                                  {cancellingId === res.id ? 'Cancelling...' : 'Yes, cancel'}
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        )}
                       </div>
                     ))}
                   </div>

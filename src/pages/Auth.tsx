@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Eye, EyeOff, Phone, Mail, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,8 +21,59 @@ export default function Auth() {
   const [otp, setOtp] = useState('');
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
+  const [showUpdatePassword, setShowUpdatePassword] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  // Check if user came from password reset email
+  useEffect(() => {
+    const isReset = searchParams.get('reset') === 'true';
+    if (isReset) {
+      // Check if user has a valid session from the reset link
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) {
+          setShowUpdatePassword(true);
+        }
+      });
+    }
+  }, [searchParams]);
+
+  const handleUpdatePassword = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    
+    if (newPassword !== confirmPassword) {
+      toast.error('Passwords do not match');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      toast.error('Password must be at least 6 characters');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+
+      if (error) throw error;
+
+      toast.success('Password updated successfully!');
+      setShowUpdatePassword(false);
+      setNewPassword('');
+      setConfirmPassword('');
+      navigate('/');
+    } catch (error: any) {
+      console.error('Update password error:', error);
+      toast.error(error.message || 'Failed to update password');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleForgotPassword = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -173,10 +224,70 @@ export default function Auth() {
             <span className="text-3xl font-display font-bold text-primary">পেটুক</span>
           </Link>
           <CardTitle className="text-2xl font-display">Welcome</CardTitle>
-          <CardDescription>Sign in or create an account to continue</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Google Sign In */}
+        <CardDescription>
+          {showUpdatePassword 
+            ? 'Enter your new password below' 
+            : 'Sign in or create an account to continue'}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {showUpdatePassword ? (
+          <form onSubmit={handleUpdatePassword} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="new-password">New Password</Label>
+              <div className="relative">
+                <Input
+                  id="new-password"
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  placeholder="••••••••"
+                  minLength={6}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-0 top-0 h-full"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirm-password">Confirm Password</Label>
+              <Input
+                id="confirm-password"
+                type="password"
+                required
+                placeholder="••••••••"
+                minLength={6}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+              />
+            </div>
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? 'Updating...' : 'Update Password'}
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              className="w-full"
+              onClick={() => {
+                setShowUpdatePassword(false);
+                setNewPassword('');
+                setConfirmPassword('');
+                navigate('/auth');
+              }}
+            >
+              Cancel
+            </Button>
+          </form>
+        ) : (
+          <>
+            {/* Google Sign In */}
           <Button
             type="button"
             variant="outline"
@@ -408,6 +519,8 @@ export default function Auth() {
               )}
             </div>
           )}
+          </>
+        )}
         </CardContent>
       </Card>
     </div>

@@ -57,7 +57,7 @@ export default function Index() {
         <div className="container relative z-10 py-20">
           <div className="max-w-2xl space-y-6 text-primary-foreground">
             {/* Restaurant Status Badge */}
-            <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium backdrop-blur-sm ${settings.isOpen ? 'bg-green-500/20 text-green-200 border border-green-400/30' : 'bg-red-500/20 text-red-200 border border-red-400/30'}`}>
+            <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium backdrop-blur-sm animate-fade-in ${settings.isOpen ? 'bg-green-500/20 text-green-200 border border-green-400/30' : 'bg-red-500/20 text-red-200 border border-red-400/30'}`}>
               <span className={`inline-block w-2 h-2 rounded-full ${settings.isOpen ? 'bg-green-400 animate-pulse' : 'bg-red-400'}`} />
               {settings.isOpen ? (
                 <span>Open Now · {settings.open_time} - {settings.close_time}</span>

@@ -29,7 +29,7 @@ serve(async (req) => {
         // Notify admin about new order
         messages.push({
           to: ADMIN_PHONE,
-          body: `🍽️ New Order #${data.orderId.slice(0, 8)}!\nAmount: ৳${data.amount}\nPhone: ${data.phone}\nAddress: ${data.address?.slice(0, 50)}...`,
+          body: `🍽️ New Order #${data.orderId.slice(0, 8)}!\nAmount: ₹${data.amount}\nPhone: ${data.phone}\nAddress: ${data.address?.slice(0, 50)}...`,
         });
         break;
 

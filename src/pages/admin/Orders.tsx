@@ -109,7 +109,7 @@ export default function AdminOrders() {
                     </div>
                     <div className="flex items-center gap-4">
                       {getStatusBadge(order.status)}
-                      <span className="font-bold">৳{order.total_amount}</span>
+                      <span className="font-bold">₹{order.total_amount}</span>
                       <Select value={order.status} onValueChange={(v) => updateStatus(order.id, v)}>
                         <SelectTrigger className="w-36">
                           <SelectValue />
@@ -153,13 +153,13 @@ export default function AdminOrders() {
                   {(selectedOrder.order_items || []).map((item: any) => (
                     <div key={item.id} className="flex justify-between py-1 text-sm">
                       <span>{item.menu_items?.name} × {item.quantity}</span>
-                      <span>৳{item.total_price}</span>
+                      <span>₹{item.total_price}</span>
                     </div>
                   ))}
                   <Separator className="my-2" />
                   <div className="flex justify-between font-bold">
                     <span>Total</span>
-                    <span>৳{selectedOrder.total_amount}</span>
+                    <span>₹{selectedOrder.total_amount}</span>
                   </div>
                 </div>
               </div>

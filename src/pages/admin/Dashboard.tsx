@@ -54,7 +54,7 @@ export default function AdminDashboard() {
     { title: 'Total Orders', value: stats.totalOrders, icon: ShoppingBag, color: 'text-primary' },
     { title: 'Pending Orders', value: stats.pendingOrders, icon: Clock, color: 'text-accent' },
     { title: "Today's Reservations", value: stats.todayReservations, icon: CalendarDays, color: 'text-success' },
-    { title: 'Total Revenue', value: `৳${stats.totalRevenue.toLocaleString()}`, icon: TrendingUp, color: 'text-primary' },
+    { title: 'Total Revenue', value: `₹${stats.totalRevenue.toLocaleString()}`, icon: TrendingUp, color: 'text-primary' },
   ];
 
   return (
@@ -103,7 +103,7 @@ export default function AdminDashboard() {
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-primary">৳{order.total_amount}</p>
+                      <p className="font-bold text-primary">₹{order.total_amount}</p>
                       <p className="text-sm capitalize text-muted-foreground">{order.status}</p>
                     </div>
                   </div>

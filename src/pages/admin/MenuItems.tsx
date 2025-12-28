@@ -201,7 +201,7 @@ export default function AdminMenu() {
                       <p className="text-sm text-muted-foreground truncate">{item.description}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-primary">৳{item.price}</p>
+                      <p className="font-bold text-primary">₹{item.price}</p>
                       <Badge variant={item.is_available ? 'default' : 'secondary'}>{item.is_available ? 'Available' : 'Unavailable'}</Badge>
                     </div>
                     <div className="flex gap-1">

@@ -71,7 +71,7 @@ export default function Cart() {
                       {item.menuItem.name_bn && (
                         <p className="text-sm font-bengali text-muted-foreground">{item.menuItem.name_bn}</p>
                       )}
-                      <p className="text-primary font-bold mt-1">৳{item.menuItem.price}</p>
+                      <p className="text-primary font-bold mt-1">₹{item.menuItem.price}</p>
                     </div>
                     <div className="flex flex-col items-end justify-between">
                       <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => removeItem(item.menuItem.id)}>
@@ -102,16 +102,16 @@ export default function Cart() {
               <CardContent className="space-y-4">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Subtotal ({items.length} items)</span>
-                  <span>৳{total.toFixed(2)}</span>
+                  <span>₹{total.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Delivery Fee</span>
-                  <span>৳{deliveryFee}</span>
+                  <span>₹{deliveryFee}</span>
                 </div>
                 <Separator />
                 <div className="flex justify-between font-bold text-lg">
                   <span>Total</span>
-                  <span className="text-primary">৳{grandTotal.toFixed(2)}</span>
+                  <span className="text-primary">₹{grandTotal.toFixed(2)}</span>
                 </div>
               </CardContent>
               <CardFooter>

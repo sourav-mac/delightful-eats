@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useEffect, useState, useRef } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -8,19 +8,32 @@ interface AdminRouteProps {
 }
 
 export function AdminRoute({ children }: AdminRouteProps) {
-  const { user, isAdmin, isLoading } = useAuth();
+  const { user, isLoading, isAdmin } = useAuth();
   const location = useLocation();
   const [isVerifying, setIsVerifying] = useState(true);
   const [isVerifiedAdmin, setIsVerifiedAdmin] = useState(false);
+  const verificationAttempted = useRef(false);
 
   // Double-check admin status directly from database for extra security
   useEffect(() => {
     const verifyAdminRole = async () => {
+      // Wait until auth is fully loaded
+      if (isLoading) {
+        return;
+      }
+
+      // If no user after auth is loaded, stop verifying
       if (!user) {
         setIsVerifying(false);
         setIsVerifiedAdmin(false);
         return;
       }
+
+      // Prevent duplicate verification attempts for the same user
+      if (verificationAttempted.current) {
+        return;
+      }
+      verificationAttempted.current = true;
 
       try {
         const { data, error } = await supabase
@@ -44,10 +57,17 @@ export function AdminRoute({ children }: AdminRouteProps) {
       }
     };
 
-    if (!isLoading) {
-      verifyAdminRole();
-    }
+    verifyAdminRole();
   }, [user, isLoading]);
+
+  // Reset verification state when user changes
+  useEffect(() => {
+    if (!user) {
+      verificationAttempted.current = false;
+      setIsVerifying(true);
+      setIsVerifiedAdmin(false);
+    }
+  }, [user]);
 
   // Show loading while checking auth and admin status
   if (isLoading || isVerifying) {

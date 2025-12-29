@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Star, CheckCircle, XCircle, Trash2 } from 'lucide-react';
-import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -60,98 +59,96 @@ export default function AdminReviews() {
   const pendingCount = reviews.filter(r => !r.is_approved).length;
 
   return (
-    <AdminLayout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-display font-bold">Reviews</h1>
-            <p className="text-muted-foreground">
-              Moderate customer reviews
-              {pendingCount > 0 && <Badge variant="destructive" className="ml-2">{pendingCount} pending</Badge>}
-            </p>
-          </div>
-          <Select value={filterStatus} onValueChange={setFilterStatus}>
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="Filter" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Reviews</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="approved">Approved</SelectItem>
-            </SelectContent>
-          </Select>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-display font-bold">Reviews</h1>
+          <p className="text-muted-foreground">
+            Moderate customer reviews
+            {pendingCount > 0 && <Badge variant="destructive" className="ml-2">{pendingCount} pending</Badge>}
+          </p>
         </div>
+        <Select value={filterStatus} onValueChange={setFilterStatus}>
+          <SelectTrigger className="w-40">
+            <SelectValue placeholder="Filter" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Reviews</SelectItem>
+            <SelectItem value="pending">Pending</SelectItem>
+            <SelectItem value="approved">Approved</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
-        <Card>
-          <CardContent className="p-0">
-            {isLoading ? (
-              <div className="p-8 text-center text-muted-foreground">Loading...</div>
-            ) : filteredReviews.length === 0 ? (
-              <div className="p-8 text-center text-muted-foreground">No reviews found</div>
-            ) : (
-              <div className="divide-y divide-border">
-                {filteredReviews.map((review: any) => (
-                  <div key={review.id} className="p-4 hover:bg-muted/50">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1 space-y-2">
-                        <div className="flex items-center gap-3">
-                          <div className="flex">
-                            {[1, 2, 3, 4, 5].map((star) => (
-                              <Star
-                                key={star}
-                                className={`h-4 w-4 ${star <= review.rating ? 'text-accent fill-accent' : 'text-muted'}`}
-                              />
-                            ))}
-                          </div>
-                          {review.menu_items?.name && (
-                            <Badge variant="outline">{review.menu_items.name}</Badge>
-                          )}
-                          <Badge variant={review.is_approved ? 'default' : 'secondary'}>
-                            {review.is_approved ? 'Approved' : 'Pending'}
-                          </Badge>
+      <Card>
+        <CardContent className="p-0">
+          {isLoading ? (
+            <div className="p-8 text-center text-muted-foreground">Loading...</div>
+          ) : filteredReviews.length === 0 ? (
+            <div className="p-8 text-center text-muted-foreground">No reviews found</div>
+          ) : (
+            <div className="divide-y divide-border">
+              {filteredReviews.map((review: any) => (
+                <div key={review.id} className="p-4 hover:bg-muted/50">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 space-y-2">
+                      <div className="flex items-center gap-3">
+                        <div className="flex">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <Star
+                              key={star}
+                              className={`h-4 w-4 ${star <= review.rating ? 'text-accent fill-accent' : 'text-muted'}`}
+                            />
+                          ))}
                         </div>
-                        {review.comment && (
-                          <p className="text-foreground">{review.comment}</p>
+                        {review.menu_items?.name && (
+                          <Badge variant="outline">{review.menu_items.name}</Badge>
                         )}
-                        <p className="text-sm text-muted-foreground">
-                          {format(new Date(review.created_at), 'MMM d, yyyy')}
-                        </p>
+                        <Badge variant={review.is_approved ? 'default' : 'secondary'}>
+                          {review.is_approved ? 'Approved' : 'Pending'}
+                        </Badge>
                       </div>
-                      <div className="flex gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => toggleApproval(review.id, review.is_approved)}
-                          className={review.is_approved ? 'text-destructive' : 'text-success'}
-                        >
-                          {review.is_approved ? <XCircle className="h-4 w-4" /> : <CheckCircle className="h-4 w-4" />}
-                        </Button>
-                        <Button variant="ghost" size="icon" className="text-destructive" onClick={() => setDeleteId(review.id)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
+                      {review.comment && (
+                        <p className="text-foreground">{review.comment}</p>
+                      )}
+                      <p className="text-sm text-muted-foreground">
+                        {format(new Date(review.created_at), 'MMM d, yyyy')}
+                      </p>
+                    </div>
+                    <div className="flex gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => toggleApproval(review.id, review.is_approved)}
+                        className={review.is_approved ? 'text-destructive' : 'text-success'}
+                      >
+                        {review.is_approved ? <XCircle className="h-4 w-4" /> : <CheckCircle className="h-4 w-4" />}
+                      </Button>
+                      <Button variant="ghost" size="icon" className="text-destructive" onClick={() => setDeleteId(review.id)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
-        {/* Delete Confirmation */}
-        <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Delete Review?</AlertDialogTitle>
-              <AlertDialogDescription>This action cannot be undone.</AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">Delete</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </div>
-    </AdminLayout>
+      {/* Delete Confirmation */}
+      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Review?</AlertDialogTitle>
+            <AlertDialogDescription>This action cannot be undone.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
   );
 }

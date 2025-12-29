@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { CartProvider } from "@/contexts/CartContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { AdminRoute } from "@/components/auth/AdminRoute";
+import { AdminLayoutWrapper } from "@/components/admin/AdminLayoutWrapper";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Menu from "./pages/Menu";
@@ -51,16 +52,20 @@ const App = () => (
               <Route path="/orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
               
-{/* Admin Only Routes - Completely Private with Separate Login */}
+              {/* Admin Login - Outside of layout */}
               <Route path="/admin/login" element={<AdminLogin />} />
-              <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
-              <Route path="/admin/analytics" element={<AdminRoute><AdminAnalytics /></AdminRoute>} />
-              <Route path="/admin/orders" element={<AdminRoute><AdminOrders /></AdminRoute>} />
-              <Route path="/admin/menu" element={<AdminRoute><AdminMenuItems /></AdminRoute>} />
-              <Route path="/admin/categories" element={<AdminRoute><AdminCategories /></AdminRoute>} />
-              <Route path="/admin/reservations" element={<AdminRoute><AdminReservations /></AdminRoute>} />
-              <Route path="/admin/reviews" element={<AdminRoute><AdminReviews /></AdminRoute>} />
-              <Route path="/admin/settings" element={<AdminRoute><AdminSettings /></AdminRoute>} />
+              
+              {/* Admin Routes - Nested under shared layout */}
+              <Route path="/admin" element={<AdminRoute><AdminLayoutWrapper /></AdminRoute>}>
+                <Route index element={<AdminDashboard />} />
+                <Route path="analytics" element={<AdminAnalytics />} />
+                <Route path="orders" element={<AdminOrders />} />
+                <Route path="menu" element={<AdminMenuItems />} />
+                <Route path="categories" element={<AdminCategories />} />
+                <Route path="reservations" element={<AdminReservations />} />
+                <Route path="reviews" element={<AdminReviews />} />
+                <Route path="settings" element={<AdminSettings />} />
+              </Route>
               
               <Route path="*" element={<NotFound />} />
             </Routes>

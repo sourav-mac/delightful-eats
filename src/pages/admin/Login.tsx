@@ -18,29 +18,50 @@ export default function AdminLogin() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const navigate = useNavigate();
 
-  // Detect password reset token from URL hash
+  // Detect password reset token from URL (supports both hash-token and PKCE code flows)
   useEffect(() => {
     const handlePasswordRecovery = async () => {
       const hashParams = new URLSearchParams(window.location.hash.substring(1));
-      const accessToken = hashParams.get('access_token');
-      const type = hashParams.get('type');
-      
-      if (type === 'recovery' && accessToken) {
-        // Set the session with the recovery token
-        const { error } = await supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: hashParams.get('refresh_token') || '',
-        });
-        
-        if (error) {
-          toast.error('Invalid or expired reset link');
-          // Clear the hash
-          window.history.replaceState(null, '', window.location.pathname);
-        } else {
+      const searchParams = new URLSearchParams(window.location.search);
+
+      const hashAccessToken = hashParams.get('access_token');
+      const hashType = hashParams.get('type');
+
+      const code = searchParams.get('code');
+      const searchType = searchParams.get('type');
+
+      const isRecovery = hashType === 'recovery' || searchType === 'recovery';
+      if (!isRecovery) return;
+
+      try {
+        // Newer auth flow: code exchange (PKCE)
+        if (code) {
+          const { error } = await supabase.auth.exchangeCodeForSession(code);
+          if (error) throw error;
+
           setShowResetPassword(true);
-          // Clear the hash for security
+          // Clear query params for security/UX
+          window.history.replaceState(null, '', window.location.pathname);
+          return;
+        }
+
+        // Legacy/implicit flow: access_token in hash
+        if (hashAccessToken) {
+          const { error } = await supabase.auth.setSession({
+            access_token: hashAccessToken,
+            refresh_token: hashParams.get('refresh_token') || '',
+          });
+
+          if (error) throw error;
+
+          setShowResetPassword(true);
+          // Clear hash for security/UX
           window.history.replaceState(null, '', window.location.pathname);
         }
+      } catch (err: any) {
+        console.error('Password recovery error:', err);
+        toast.error('Invalid or expired reset link');
+        window.history.replaceState(null, '', window.location.pathname);
       }
     };
 

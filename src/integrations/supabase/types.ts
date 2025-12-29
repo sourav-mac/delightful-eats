@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_login_rate_limits: {
+        Row: {
+          attempts: number
+          email: string
+          last_attempt_at: string
+          locked_until: string | null
+        }
+        Insert: {
+          attempts?: number
+          email: string
+          last_attempt_at?: string
+          locked_until?: string | null
+        }
+        Update: {
+          attempts?: number
+          email?: string
+          last_attempt_at?: string
+          locked_until?: string | null
+        }
+        Relationships: []
+      }
       allowed_admin_emails: {
         Row: {
           created_at: string
@@ -466,6 +487,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_admin_login_rate_limit: {
+        Args: {
+          p_email: string
+          p_lockout_minutes?: number
+          p_max_attempts?: number
+          p_window_minutes?: number
+        }
+        Returns: Json
+      }
       check_otp_rate_limit: {
         Args: {
           p_max_attempts?: number
@@ -475,6 +505,7 @@ export type Database = {
         Returns: boolean
       }
       cleanup_expired_otps: { Args: never; Returns: undefined }
+      cleanup_old_admin_login_rate_limits: { Args: never; Returns: undefined }
       cleanup_old_rate_limits: { Args: never; Returns: undefined }
       has_role: {
         Args: {
@@ -482,6 +513,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      reset_admin_login_rate_limit: {
+        Args: { p_email: string }
+        Returns: undefined
       }
     }
     Enums: {

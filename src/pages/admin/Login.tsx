@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Lock, Shield, ArrowLeft, KeyRound } from 'lucide-react';
+import { Eye, EyeOff, Lock, Shield, ArrowLeft, KeyRound, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -16,7 +17,26 @@ export default function AdminLogin() {
   const [forgotEmail, setForgotEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [lockoutSeconds, setLockoutSeconds] = useState<number | null>(null);
+  const [attemptInfo, setAttemptInfo] = useState<{ attempts: number; max: number } | null>(null);
   const navigate = useNavigate();
+
+  // Countdown timer for lockout
+  useEffect(() => {
+    if (lockoutSeconds === null || lockoutSeconds <= 0) return;
+    
+    const timer = setInterval(() => {
+      setLockoutSeconds(prev => {
+        if (prev === null || prev <= 1) {
+          clearInterval(timer);
+          return null;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    
+    return () => clearInterval(timer);
+  }, [lockoutSeconds]);
 
   // Detect password reset token from URL (supports both hash-token and PKCE code flows)
   useEffect(() => {
@@ -108,78 +128,74 @@ export default function AdminLogin() {
 
   const handleAdminSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    
+    // Don't allow submission during lockout
+    if (lockoutSeconds !== null && lockoutSeconds > 0) {
+      toast.error('Please wait for the lockout to expire');
+      return;
+    }
+    
     setIsLoading(true);
+    setAttemptInfo(null);
     
     const formData = new FormData(e.currentTarget);
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
 
     try {
-      // First, check if the email is in the allowed admin emails list
-      const { data: allowedEmail, error: allowedError } = await supabase
-        .from('allowed_admin_emails')
-        .select('email')
-        .eq('email', email.toLowerCase().trim())
-        .maybeSingle();
-
-      if (allowedError) {
-        console.error('Allowed email check error:', allowedError);
-        toast.error('Access verification failed');
-        setIsLoading(false);
-        return;
-      }
-
-      if (!allowedEmail) {
-        toast.error('This email is not authorized for admin access');
-        setIsLoading(false);
-        return;
-      }
-
-      // Sign in the user
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      // Call the rate-limited admin login edge function
+      const { data, error } = await supabase.functions.invoke('admin-login', {
+        body: { email, password }
       });
 
-      if (authError) {
-        toast.error(authError.message);
+      if (error) {
+        console.error('Admin login edge function error:', error);
+        toast.error('Login service unavailable');
         setIsLoading(false);
         return;
       }
 
-      if (!authData.user) {
-        toast.error('Authentication failed');
+      // Handle lockout response
+      if (data.locked) {
+        setLockoutSeconds(data.remaining_seconds || 1800);
+        toast.error(data.error);
         setIsLoading(false);
         return;
       }
 
-      // Verify admin role from database
-      const { data: roleData, error: roleError } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', authData.user.id)
-        .eq('role', 'admin')
-        .maybeSingle();
+      // Handle failed attempt with attempt count
+      if (data.attempts && data.max_attempts) {
+        setAttemptInfo({ attempts: data.attempts, max: data.max_attempts });
+      }
 
-      if (roleError) {
-        console.error('Role verification error:', roleError);
-        await supabase.auth.signOut();
-        toast.error('Access verification failed');
+      // Handle error responses
+      if (data.error) {
+        toast.error(data.error);
         setIsLoading(false);
         return;
       }
 
-      if (!roleData) {
-        // Not an admin - sign them out immediately
-        await supabase.auth.signOut();
-        toast.error('Access denied. Admin credentials required.');
-        setIsLoading(false);
-        return;
-      }
+      // Success - set the session from the edge function response
+      if (data.success && data.session) {
+        // Set the session in the local Supabase client
+        const { error: sessionError } = await supabase.auth.setSession({
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token
+        });
 
-      // Admin verified - redirect to dashboard
-      toast.success('Welcome, Admin!');
-      navigate('/admin');
+        if (sessionError) {
+          console.error('Session set error:', sessionError);
+          toast.error('Failed to establish session');
+          setIsLoading(false);
+          return;
+        }
+
+        // Clear any attempt info
+        setAttemptInfo(null);
+        
+        toast.success('Welcome, Admin!');
+        navigate('/admin');
+      }
     } catch (error: any) {
       console.error('Admin login error:', error);
       toast.error('An error occurred during login');
@@ -355,6 +371,26 @@ export default function AdminLogin() {
           </div>
         </CardHeader>
         <CardContent>
+          {/* Lockout Warning */}
+          {lockoutSeconds !== null && lockoutSeconds > 0 && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>
+                Too many failed attempts. Try again in {Math.ceil(lockoutSeconds / 60)} minute{Math.ceil(lockoutSeconds / 60) !== 1 ? 's' : ''}.
+              </AlertDescription>
+            </Alert>
+          )}
+          
+          {/* Attempt Warning */}
+          {attemptInfo && attemptInfo.attempts >= 3 && (
+            <Alert variant="default" className="mb-4 border-yellow-500/50 bg-yellow-500/10">
+              <AlertTriangle className="h-4 w-4 text-yellow-600" />
+              <AlertDescription className="text-yellow-700 dark:text-yellow-400">
+                {attemptInfo.max - attemptInfo.attempts} attempt{attemptInfo.max - attemptInfo.attempts !== 1 ? 's' : ''} remaining before lockout.
+              </AlertDescription>
+            </Alert>
+          )}
+
           <form onSubmit={handleAdminSignIn} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Admin Email</Label>
@@ -365,6 +401,7 @@ export default function AdminLogin() {
                 required 
                 placeholder="admin@example.com"
                 className="bg-background"
+                disabled={lockoutSeconds !== null && lockoutSeconds > 0}
               />
             </div>
             <div className="space-y-2">
@@ -377,6 +414,7 @@ export default function AdminLogin() {
                   required 
                   placeholder="••••••••"
                   className="bg-background pr-10"
+                  disabled={lockoutSeconds !== null && lockoutSeconds > 0}
                 />
                 <Button 
                   type="button" 
@@ -389,9 +427,17 @@ export default function AdminLogin() {
                 </Button>
               </div>
             </div>
-            <Button type="submit" className="w-full gap-2" disabled={isLoading}>
+            <Button 
+              type="submit" 
+              className="w-full gap-2" 
+              disabled={isLoading || (lockoutSeconds !== null && lockoutSeconds > 0)}
+            >
               <Lock className="h-4 w-4" />
-              {isLoading ? 'Verifying...' : 'Access Admin Panel'}
+              {lockoutSeconds !== null && lockoutSeconds > 0 
+                ? `Locked (${Math.ceil(lockoutSeconds / 60)}m)` 
+                : isLoading 
+                  ? 'Verifying...' 
+                  : 'Access Admin Panel'}
             </Button>
             <Button 
               type="button" 
@@ -406,7 +452,7 @@ export default function AdminLogin() {
           <p className="mt-4 text-center text-xs text-muted-foreground">
             This area is for authorized administrators only.
             <br />
-            Unauthorized access attempts are logged.
+            Unauthorized access attempts are logged and rate limited.
           </p>
         </CardContent>
       </Card>

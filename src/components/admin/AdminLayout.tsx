@@ -79,10 +79,10 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen flex bg-muted/30">
-      {/* Sidebar - Fixed position with proper height */}
+      {/* Sidebar - Fixed position with full screen height */}
       <aside 
         className={cn(
-          "fixed inset-y-0 left-0 bg-card border-r border-border z-50 flex flex-col",
+          "fixed top-0 left-0 h-screen bg-card border-r border-border z-50 flex flex-col",
           "transition-[width] duration-300 ease-in-out",
           collapsed ? "w-16" : "w-64"
         )}

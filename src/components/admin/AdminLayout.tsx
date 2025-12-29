@@ -47,34 +47,42 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen flex bg-muted/30">
-      {/* Sidebar */}
+      {/* Sidebar - Fixed position with proper height */}
       <aside 
         className={cn(
-          "fixed left-0 top-0 h-full bg-card border-r border-border transition-all duration-300 z-40 flex flex-col",
+          "fixed inset-y-0 left-0 bg-card border-r border-border z-50 flex flex-col",
+          "transition-[width] duration-300 ease-in-out",
           collapsed ? "w-16" : "w-64"
         )}
       >
-        {/* Logo */}
-        <div className="h-16 flex items-center justify-between px-4 border-b border-border flex-shrink-0">
-          {!collapsed && (
-            <div className="flex items-center gap-2">
-              <span className="text-xl font-display font-bold text-primary">পেটুক</span>
-              <span className="text-sm font-medium text-muted-foreground">Admin</span>
-            </div>
-          )}
+        {/* Logo Header - Always visible */}
+        <div className="h-16 flex items-center justify-between px-4 border-b border-border shrink-0">
+          <div className={cn(
+            "flex items-center gap-2 overflow-hidden transition-all duration-300",
+            collapsed ? "w-0 opacity-0" : "w-auto opacity-100"
+          )}>
+            <span className="text-xl font-display font-bold text-primary whitespace-nowrap">পেটুক</span>
+            <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">Admin</span>
+          </div>
           <Button 
             variant="ghost" 
             size="icon" 
             onClick={() => setCollapsed(!collapsed)}
-            className={collapsed ? "mx-auto" : ""}
+            className={cn(
+              "shrink-0 transition-transform duration-300 hover:bg-muted",
+              collapsed && "mx-auto"
+            )}
           >
-            <ChevronLeft className={cn("h-4 w-4 transition-transform", collapsed && "rotate-180")} />
+            <ChevronLeft className={cn(
+              "h-4 w-4 transition-transform duration-300", 
+              collapsed && "rotate-180"
+            )} />
           </Button>
         </div>
 
-        {/* Navigation - scrollable area */}
-        <nav className="flex-1 overflow-y-auto p-2 space-y-1">
-          {navItems.map((item) => {
+        {/* Navigation - Scrollable middle section */}
+        <nav className="flex-1 overflow-y-auto overflow-x-hidden p-2 space-y-1 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
+          {navItems.map((item, index) => {
             const isActive = item.exact 
               ? location.pathname === item.href 
               : location.pathname.startsWith(item.href);
@@ -84,33 +92,54 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                 key={item.href}
                 to={item.href}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors",
+                  "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200",
+                  "hover:scale-[1.02] active:scale-[0.98]",
                   isActive 
-                    ? "bg-primary text-primary-foreground" 
+                    ? "bg-primary text-primary-foreground shadow-md" 
                     : "text-muted-foreground hover:text-foreground hover:bg-muted"
                 )}
+                style={{ animationDelay: `${index * 50}ms` }}
               >
-                <item.icon className="h-5 w-5 flex-shrink-0" />
-                {!collapsed && <span className="font-medium">{item.label}</span>}
+                <item.icon className={cn(
+                  "h-5 w-5 shrink-0 transition-transform duration-200",
+                  isActive && "scale-110"
+                )} />
+                <span className={cn(
+                  "font-medium whitespace-nowrap transition-all duration-300",
+                  collapsed ? "opacity-0 w-0 overflow-hidden" : "opacity-100 w-auto"
+                )}>
+                  {item.label}
+                </span>
               </Link>
             );
           })}
         </nav>
 
-        {/* Bottom actions - fixed at bottom */}
-        <div className="flex-shrink-0 p-2 border-t border-border bg-card">
+        {/* Logout Button - Fixed at bottom, always visible */}
+        <div className="shrink-0 p-2 border-t border-border bg-card">
           <button
             onClick={handleSignOut}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-destructive hover:bg-destructive/10 transition-colors"
+            className={cn(
+              "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200",
+              "text-destructive hover:bg-destructive/10 hover:scale-[1.02] active:scale-[0.98]"
+            )}
           >
-            <LogOut className="h-5 w-5 flex-shrink-0" />
-            {!collapsed && <span className="font-medium">Sign Out</span>}
+            <LogOut className="h-5 w-5 shrink-0" />
+            <span className={cn(
+              "font-medium whitespace-nowrap transition-all duration-300",
+              collapsed ? "opacity-0 w-0 overflow-hidden" : "opacity-100 w-auto"
+            )}>
+              Sign Out
+            </span>
           </button>
         </div>
       </aside>
 
-      {/* Main Content */}
-      <main className={cn("flex-1 transition-all duration-300", collapsed ? "ml-16" : "ml-64")}>
+      {/* Main Content - with proper margin for fixed sidebar */}
+      <main className={cn(
+        "flex-1 min-h-screen transition-[margin] duration-300 ease-in-out",
+        collapsed ? "ml-16" : "ml-64"
+      )}>
         <div className="p-6">
           {children}
         </div>

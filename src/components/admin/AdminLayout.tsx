@@ -78,11 +78,11 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="min-h-screen flex bg-muted/30">
+    <div className="h-screen overflow-hidden flex bg-muted/30">
       {/* Sidebar - Fixed position with full screen height */}
       <aside 
         className={cn(
-          "fixed top-0 left-0 h-screen bg-card border-r border-border z-50 flex flex-col",
+          "fixed top-0 left-0 h-screen bg-card border-r border-border z-50 flex flex-col overflow-hidden",
           "transition-[width] duration-300 ease-in-out",
           collapsed ? "w-16" : "w-64"
         )}
@@ -187,7 +187,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
 
       {/* Main Content - with proper margin for fixed sidebar */}
       <main className={cn(
-        "flex-1 min-h-screen transition-[margin] duration-300 ease-in-out",
+        "flex-1 h-screen overflow-y-auto transition-[margin] duration-300 ease-in-out",
         collapsed ? "ml-16" : "ml-64"
       )}>
         <div className="p-6">

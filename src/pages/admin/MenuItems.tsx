@@ -190,15 +190,15 @@ export default function AdminMenu() {
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium truncate">{item.name}</p>
-                      {item.is_popular && <Badge variant="outline" className="text-popular border-popular"><Star className="h-3 w-3" /></Badge>}
-                      {item.is_spicy && <Badge variant="outline" className="text-spicy border-spicy"><Flame className="h-3 w-3" /></Badge>}
-                      {item.is_vegetarian && <Badge variant="outline" className="text-vegetarian border-vegetarian"><Leaf className="h-3 w-3" /></Badge>}
-                    </div>
+                    <p className="font-medium truncate">{item.name}</p>
                     <p className="text-sm text-muted-foreground truncate">{item.description}</p>
+                    <div className="flex items-center gap-1 mt-1">
+                      {item.is_popular && <Badge variant="outline" className="text-popular border-popular px-1.5"><Star className="h-3 w-3" /></Badge>}
+                      {item.is_spicy && <Badge variant="outline" className="text-spicy border-spicy px-1.5"><Flame className="h-3 w-3" /></Badge>}
+                      {item.is_vegetarian && <Badge variant="outline" className="text-vegetarian border-vegetarian px-1.5"><Leaf className="h-3 w-3" /></Badge>}
+                    </div>
                   </div>
-                  <div className="text-right">
+                  <div className="text-right flex-shrink-0">
                     <p className="font-bold text-primary">₹{item.price}</p>
                     <Badge variant={item.is_available ? 'default' : 'secondary'}>{item.is_available ? 'Available' : 'Unavailable'}</Badge>
                   </div>

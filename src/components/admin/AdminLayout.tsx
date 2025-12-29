@@ -15,27 +15,59 @@ import {
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
-
-const navItems = [
-  { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
-  { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
-  { href: '/admin/orders', label: 'Orders', icon: ShoppingBag },
-  { href: '/admin/menu', label: 'Menu Items', icon: UtensilsCrossed },
-  { href: '/admin/categories', label: 'Categories', icon: FolderOpen },
-  { href: '/admin/reservations', label: 'Reservations', icon: CalendarDays },
-  { href: '/admin/reviews', label: 'Reviews', icon: MessageSquare },
-  { href: '/admin/settings', label: 'Settings', icon: Settings },
-];
+import { supabase } from '@/integrations/supabase/client';
+import { Badge } from '@/components/ui/badge';
 
 export function AdminLayout({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(() => {
     const saved = localStorage.getItem('admin-sidebar-collapsed');
     return saved === 'true';
   });
+  const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
+  const [pendingReviewsCount, setPendingReviewsCount] = useState(0);
 
   useEffect(() => {
     localStorage.setItem('admin-sidebar-collapsed', String(collapsed));
   }, [collapsed]);
+
+  useEffect(() => {
+    const fetchCounts = async () => {
+      const [ordersRes, reviewsRes] = await Promise.all([
+        supabase.from('orders').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+        supabase.from('reviews').select('id', { count: 'exact', head: true }).eq('is_approved', false)
+      ]);
+      setPendingOrdersCount(ordersRes.count || 0);
+      setPendingReviewsCount(reviewsRes.count || 0);
+    };
+    fetchCounts();
+
+    const ordersChannel = supabase
+      .channel('orders-count')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, fetchCounts)
+      .subscribe();
+
+    const reviewsChannel = supabase
+      .channel('reviews-count')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'reviews' }, fetchCounts)
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(ordersChannel);
+      supabase.removeChannel(reviewsChannel);
+    };
+  }, []);
+
+  const navItems = [
+    { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
+    { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
+    { href: '/admin/orders', label: 'Orders', icon: ShoppingBag, badge: pendingOrdersCount },
+    { href: '/admin/menu', label: 'Menu Items', icon: UtensilsCrossed },
+    { href: '/admin/categories', label: 'Categories', icon: FolderOpen },
+    { href: '/admin/reservations', label: 'Reservations', icon: CalendarDays },
+    { href: '/admin/reviews', label: 'Reviews', icon: MessageSquare, badge: pendingReviewsCount },
+    { href: '/admin/settings', label: 'Settings', icon: Settings },
+  ];
+
   const location = useLocation();
   const navigate = useNavigate();
   const { signOut } = useAuth();
@@ -92,7 +124,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                 key={item.href}
                 to={item.href}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200",
+                  "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 relative",
                   "hover:scale-[1.02] active:scale-[0.98]",
                   isActive 
                     ? "bg-primary text-primary-foreground shadow-md" 
@@ -100,16 +132,34 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                 )}
                 style={{ animationDelay: `${index * 50}ms` }}
               >
-                <item.icon className={cn(
-                  "h-5 w-5 shrink-0 transition-transform duration-200",
-                  isActive && "scale-110"
-                )} />
+                <div className="relative shrink-0">
+                  <item.icon className={cn(
+                    "h-5 w-5 transition-transform duration-200",
+                    isActive && "scale-110"
+                  )} />
+                  {item.badge > 0 && collapsed && (
+                    <span className="absolute -top-1.5 -right-1.5 h-4 min-w-4 flex items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold px-1">
+                      {item.badge > 99 ? '99+' : item.badge}
+                    </span>
+                  )}
+                </div>
                 <span className={cn(
-                  "font-medium whitespace-nowrap transition-all duration-300",
+                  "font-medium whitespace-nowrap transition-all duration-300 flex-1",
                   collapsed ? "opacity-0 w-0 overflow-hidden" : "opacity-100 w-auto"
                 )}>
                   {item.label}
                 </span>
+                {item.badge > 0 && !collapsed && (
+                  <Badge 
+                    variant="destructive" 
+                    className={cn(
+                      "h-5 min-w-5 flex items-center justify-center text-[10px] font-bold px-1.5",
+                      isActive && "bg-destructive-foreground text-destructive"
+                    )}
+                  >
+                    {item.badge > 99 ? '99+' : item.badge}
+                  </Badge>
+                )}
               </Link>
             );
           })}

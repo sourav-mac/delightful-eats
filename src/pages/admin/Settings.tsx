@@ -150,7 +150,7 @@ export default function AdminSettings() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="min_order_price">Minimum Order Price (৳)</Label>
+                <Label htmlFor="min_order_price">Minimum Order Price (₹)</Label>
                 <Input
                   id="min_order_price"
                   type="number"
@@ -164,7 +164,7 @@ export default function AdminSettings() {
                 </p>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="delivery_charge">Delivery Charge (৳)</Label>
+                <Label htmlFor="delivery_charge">Delivery Charge (₹)</Label>
                 <div className="relative">
                   <Truck className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -202,11 +202,11 @@ export default function AdminSettings() {
               </div>
               <div className="p-4 rounded-lg bg-muted/50 text-center">
                 <p className="text-sm text-muted-foreground">Min Order</p>
-                <p className="text-2xl font-bold text-primary">৳{settings.min_order_price}</p>
+                <p className="text-2xl font-bold text-primary">₹{settings.min_order_price}</p>
               </div>
               <div className="p-4 rounded-lg bg-muted/50 text-center">
                 <p className="text-sm text-muted-foreground">Delivery</p>
-                <p className="text-2xl font-bold text-primary">৳{settings.delivery_charge}</p>
+                <p className="text-2xl font-bold text-primary">₹{settings.delivery_charge}</p>
               </div>
             </div>
           </CardContent>

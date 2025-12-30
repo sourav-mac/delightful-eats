@@ -190,13 +190,17 @@ export default function Checkout() {
     setIsSubmitting(true);
 
     try {
-      // Get fresh session to ensure valid JWT
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
+      // Get a fresh session/JWT for the edge function call
+      const { data: { session: existingSession } } = await supabase.auth.getSession();
+      if (!existingSession) {
         toast.error('Please log in again');
         navigate('/auth');
         return;
       }
+
+      // Force refresh to avoid "Invalid JWT" on long-lived checkout pages
+      const { data: { session } } = await supabase.auth.refreshSession();
+      const accessToken = session?.access_token || existingSession.access_token;
 
       // Create order via secure edge function (server-side price verification)
       const { data: orderResponse, error: orderError } = await supabase.functions.invoke('create-order', {
@@ -205,6 +209,9 @@ export default function Checkout() {
           delivery_phone: validatedData.phone,
           delivery_notes: validatedData.notes,
           payment_method: validatedData.payment_method,
+        },
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
         },
       });
 

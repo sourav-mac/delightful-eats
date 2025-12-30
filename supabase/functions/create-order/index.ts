@@ -70,6 +70,12 @@ serve(async (req) => {
 
     // Parse and validate input
     const { delivery_address, delivery_phone, delivery_notes, payment_method } = await req.json();
+    console.log('Incoming create-order payload:', {
+      hasAddress: !!delivery_address,
+      phonePreview: typeof delivery_phone === 'string' ? delivery_phone.slice(0, 4) + '****' : null,
+      hasNotes: !!delivery_notes,
+      payment_method,
+    });
 
     // Validate inputs
     const errors: string[] = [];

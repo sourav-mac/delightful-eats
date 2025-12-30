@@ -201,7 +201,14 @@ export default function Checkout() {
       });
 
       if (orderError) {
-        throw new Error(orderError.message || 'Failed to create order');
+        // Supabase functions errors often hide the real server error inside context.body
+        const ctxBody = (orderError as any)?.context?.body;
+        const serverMessage =
+          (typeof ctxBody === 'string' ? undefined : ctxBody?.error) ||
+          (typeof ctxBody === 'string' ? undefined : ctxBody?.message);
+
+        console.error('create-order failed:', orderError);
+        throw new Error(serverMessage || orderError.message || 'Failed to create order');
       }
 
       if (!orderResponse?.order) {

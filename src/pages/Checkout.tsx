@@ -190,6 +190,14 @@ export default function Checkout() {
     setIsSubmitting(true);
 
     try {
+      // Get fresh session to ensure valid JWT
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error('Please log in again');
+        navigate('/auth');
+        return;
+      }
+
       // Create order via secure edge function (server-side price verification)
       const { data: orderResponse, error: orderError } = await supabase.functions.invoke('create-order', {
         body: {

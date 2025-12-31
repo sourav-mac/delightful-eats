@@ -43,12 +43,22 @@ serve(async (req) => {
       });
     }
 
+    // Extract the JWT token from the header
+    const token = authHeader.replace('Bearer ', '');
+    if (!token) {
+      console.error('No token in authorization header');
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     // Create Supabase client with user's token
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     
-    // User client for auth verification
+    // User client for auth verification and user operations
     const supabaseUser = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } }
     });
@@ -56,10 +66,10 @@ serve(async (req) => {
     // Service client for database operations (bypasses RLS for reading cart)
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Verify user
-    const { data: { user }, error: authError } = await supabaseUser.auth.getUser();
+    // Verify user by passing the token directly to getUser
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
     if (authError || !user) {
-      console.error('Auth error:', authError?.message);
+      console.error('Auth error:', authError?.message || 'No user found');
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

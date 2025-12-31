@@ -37,11 +37,12 @@ export default function Reviews() {
       // Get unique user IDs
       const userIds = [...new Set(reviewsData.map(r => r.user_id).filter(Boolean))] as string[];
       
-      // Fetch profiles for these users
+      // Fetch public profile data using the restricted view (only id, full_name, avatar_url)
+      // This prevents exposure of sensitive data like email and phone
       const { data: profilesData } = await supabase
-        .from('profiles')
-        .select('*')
-        .in('id', userIds);
+        .from('public_profiles' as any)
+        .select('id, full_name, avatar_url')
+        .in('id', userIds) as { data: { id: string; full_name: string | null; avatar_url: string | null }[] | null };
       
       // Map profiles to reviews
       const profilesMap = new Map(profilesData?.map(p => [p.id, p]) || []);
@@ -118,9 +119,7 @@ export default function Reviews() {
                           alt={review.profile?.full_name || 'User'} 
                         />
                         <AvatarFallback className="bg-primary text-primary-foreground">
-                          {review.profile?.full_name?.charAt(0)?.toUpperCase() || 
-                           review.profile?.phone?.slice(-2) || 
-                           'G'}
+                          {review.profile?.full_name?.charAt(0)?.toUpperCase() || 'G'}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1">

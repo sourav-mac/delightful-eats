@@ -70,11 +70,14 @@ export default function Checkout() {
     };
   }, []);
 
-  const processRazorpayPayment = async (orderId: string, userPhone: string) => {
+  const processRazorpayPayment = async (orderId: string, userPhone: string, accessToken: string) => {
     try {
       // Create Razorpay order using server-verified amount
       const { data, error } = await supabase.functions.invoke('create-razorpay-order', {
         body: { orderId },
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
       });
 
       if (error) throw new Error(error.message);
@@ -250,7 +253,7 @@ export default function Checkout() {
 
       // Process payment based on method
       if (paymentMethod === 'razorpay') {
-        await processRazorpayPayment(order.id, validatedData.phone);
+        await processRazorpayPayment(order.id, validatedData.phone, accessToken);
       } else {
         // Cash on delivery
         setOrderPlaced(true);

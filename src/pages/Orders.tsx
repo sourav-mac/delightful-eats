@@ -132,27 +132,33 @@ export default function Orders() {
                     className="cursor-pointer hover:bg-muted/50 transition-colors"
                     onClick={() => setExpandedOrder(isExpanded ? null : order.id)}
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-1">
-                        <CardTitle className="text-lg flex items-center gap-2">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 max-w-full overflow-hidden">
+                      {/* Order info */}
+                      <div className="space-y-1 min-w-0 flex-shrink-0">
+                        <CardTitle className="text-base sm:text-lg flex items-center gap-2 break-all">
                           Order #{order.id.slice(0, 8).toUpperCase()}
                         </CardTitle>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-xs sm:text-sm text-muted-foreground">
                           {format(new Date(order.created_at), 'MMM d, yyyy • h:mm a')}
                         </p>
                       </div>
-                      <div className="flex items-center gap-4">
-                        <Badge className={status.color}>
+                      
+                      {/* Status, Price, and Cancel - responsive wrap */}
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-4">
+                        <Badge className={`${status.color} text-xs sm:text-sm whitespace-nowrap`}>
                           <StatusIcon className="h-3 w-3 mr-1" />
                           {status.label}
                         </Badge>
-                        <span className="font-bold text-primary">₹{order.total_amount}</span>
+                        <span className="font-bold text-primary text-sm sm:text-base whitespace-nowrap">
+                          ₹{order.total_amount}
+                        </span>
                         {canCancelOrder(order) && (
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <Button
                                 variant="destructive"
                                 size="sm"
+                                className="text-xs sm:text-sm px-2 sm:px-3 h-7 sm:h-8"
                                 onClick={(e) => e.stopPropagation()}
                               >
                                 Cancel

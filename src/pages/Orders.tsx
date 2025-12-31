@@ -99,43 +99,47 @@ export default function Orders() {
 
   return (
     <Layout>
-      <div className="container py-8 max-w-4xl">
-        <h1 className="text-3xl font-display font-bold mb-8">My Orders</h1>
+      <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8 py-6 sm:py-8 mx-auto max-w-4xl">
+        <h1 className="text-2xl sm:text-3xl font-display font-bold mb-6 sm:mb-8 text-center sm:text-left">
+          My Orders
+        </h1>
 
         {isLoading ? (
           <div className="space-y-4">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="h-32 bg-muted rounded-lg animate-pulse" />
+              <div key={i} className="h-28 sm:h-32 bg-muted rounded-lg animate-pulse" />
             ))}
           </div>
         ) : orders.length === 0 ? (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <h2 className="text-xl font-display font-semibold mb-2">No orders yet</h2>
-              <p className="text-muted-foreground mb-6">Start ordering delicious food from our menu</p>
+          <Card className="w-full">
+            <CardContent className="py-10 sm:py-12 text-center px-4">
+              <Package className="h-10 w-10 sm:h-12 sm:w-12 mx-auto text-muted-foreground mb-4" />
+              <h2 className="text-lg sm:text-xl font-display font-semibold mb-2">No orders yet</h2>
+              <p className="text-sm sm:text-base text-muted-foreground mb-6">
+                Start ordering delicious food from our menu
+              </p>
               <Button asChild>
                 <Link to="/menu">Browse Menu</Link>
               </Button>
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             {orders.map((order) => {
               const status = statusConfig[order.status] || statusConfig.pending;
               const StatusIcon = status.icon;
               const isExpanded = expandedOrder === order.id;
 
               return (
-                <Card key={order.id} className="overflow-hidden">
+                <Card key={order.id} className="w-full overflow-hidden">
                   <CardHeader
-                    className="cursor-pointer hover:bg-muted/50 transition-colors"
+                    className="cursor-pointer hover:bg-muted/50 transition-colors p-4 sm:p-6"
                     onClick={() => setExpandedOrder(isExpanded ? null : order.id)}
                   >
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 max-w-full overflow-hidden">
+                    <div className="flex flex-col gap-3 w-full">
                       {/* Order info */}
-                      <div className="space-y-1 min-w-0 flex-shrink-0">
-                        <CardTitle className="text-base sm:text-lg flex items-center gap-2 break-all">
+                      <div className="space-y-1">
+                        <CardTitle className="text-base sm:text-lg break-all leading-tight">
                           Order #{order.id.slice(0, 8).toUpperCase()}
                         </CardTitle>
                         <p className="text-xs sm:text-sm text-muted-foreground">
@@ -144,12 +148,12 @@ export default function Orders() {
                       </div>
                       
                       {/* Status, Price, and Cancel - responsive wrap */}
-                      <div className="flex flex-wrap items-center gap-2 sm:gap-4">
-                        <Badge className={`${status.color} text-xs sm:text-sm whitespace-nowrap`}>
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                        <Badge className={`${status.color} text-xs sm:text-sm shrink-0`}>
                           <StatusIcon className="h-3 w-3 mr-1" />
                           {status.label}
                         </Badge>
-                        <span className="font-bold text-primary text-sm sm:text-base whitespace-nowrap">
+                        <span className="font-bold text-primary text-sm sm:text-base shrink-0">
                           ₹{order.total_amount}
                         </span>
                         {canCancelOrder(order) && (
@@ -158,25 +162,28 @@ export default function Orders() {
                               <Button
                                 variant="destructive"
                                 size="sm"
-                                className="text-xs sm:text-sm px-2 sm:px-3 h-7 sm:h-8"
+                                className="text-xs sm:text-sm px-3 h-7 sm:h-8 shrink-0"
                                 onClick={(e) => e.stopPropagation()}
                               >
                                 Cancel
                               </Button>
                             </AlertDialogTrigger>
-                            <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+                            <AlertDialogContent 
+                              className="w-[95vw] max-w-md mx-auto"
+                              onClick={(e) => e.stopPropagation()}
+                            >
                               <AlertDialogHeader>
                                 <AlertDialogTitle>Cancel Order?</AlertDialogTitle>
                                 <AlertDialogDescription>
                                   Are you sure you want to cancel this order? This action cannot be undone.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>No, keep it</AlertDialogCancel>
+                              <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+                                <AlertDialogCancel className="w-full sm:w-auto">No, keep it</AlertDialogCancel>
                                 <AlertDialogAction
                                   onClick={() => handleCancelOrder(order.id)}
                                   disabled={cancellingOrderId === order.id}
-                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                  className="w-full sm:w-auto bg-destructive text-destructive-foreground hover:bg-destructive/90"
                                 >
                                   {cancellingOrderId === order.id ? 'Cancelling...' : 'Yes, cancel order'}
                                 </AlertDialogAction>
@@ -189,16 +196,16 @@ export default function Orders() {
                   </CardHeader>
 
                   {isExpanded && (
-                    <CardContent className="border-t border-border pt-4 space-y-4">
+                    <CardContent className="border-t border-border pt-4 space-y-4 px-4 sm:px-6 pb-4 sm:pb-6">
                       <div>
-                        <h4 className="font-medium mb-2">Items</h4>
+                        <h4 className="font-medium mb-2 text-sm sm:text-base">Items</h4>
                         <div className="space-y-2">
                           {(order.order_items || []).map((item: any) => (
-                            <div key={item.id} className="flex justify-between text-sm">
-                              <span>
+                            <div key={item.id} className="flex justify-between text-xs sm:text-sm gap-2">
+                              <span className="break-words">
                                 {item.menu_items?.name || 'Item'} × {item.quantity}
                               </span>
-                              <span>₹{item.total_price}</span>
+                              <span className="shrink-0">₹{item.total_price}</span>
                             </div>
                           ))}
                         </div>
@@ -206,10 +213,10 @@ export default function Orders() {
 
                       <Separator />
 
-                      <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div className="grid grid-cols-1 xs:grid-cols-2 gap-3 sm:gap-4 text-xs sm:text-sm">
                         <div>
                           <p className="text-muted-foreground">Delivery Address</p>
-                          <p>{order.delivery_address || 'N/A'}</p>
+                          <p className="break-words">{order.delivery_address || 'N/A'}</p>
                         </div>
                         <div>
                           <p className="text-muted-foreground">Phone</p>
@@ -229,8 +236,8 @@ export default function Orders() {
                         <>
                           <Separator />
                           <div>
-                            <p className="text-muted-foreground text-sm">Delivery Notes</p>
-                            <p className="text-sm">{order.delivery_notes}</p>
+                            <p className="text-muted-foreground text-xs sm:text-sm">Delivery Notes</p>
+                            <p className="text-xs sm:text-sm break-words">{order.delivery_notes}</p>
                           </div>
                         </>
                       )}

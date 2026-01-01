@@ -91,19 +91,28 @@ export default function AdminCategories() {
           ) : (
             <div className="divide-y divide-border">
               {categories.map((cat) => (
-                <div key={cat.id} className="p-4 flex items-center gap-4 hover:bg-muted/50">
-                  <GripVertical className="h-5 w-5 text-muted-foreground cursor-move" />
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium">{cat.name}</p>
-                      {cat.name_bn && <span className="text-sm font-bengali text-muted-foreground">({cat.name_bn})</span>}
+                <div key={cat.id} className="p-4 hover:bg-muted/50">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                    {/* Top row: Drag handle, Name, and mobile actions */}
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <GripVertical className="h-5 w-5 text-muted-foreground cursor-move shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="font-medium truncate">{cat.name}</p>
+                          {cat.name_bn && <span className="text-sm font-bengali text-muted-foreground">({cat.name_bn})</span>}
+                        </div>
+                        {cat.description && <p className="text-sm text-muted-foreground line-clamp-1">{cat.description}</p>}
+                      </div>
                     </div>
-                    {cat.description && <p className="text-sm text-muted-foreground">{cat.description}</p>}
-                  </div>
-                  <Badge variant={cat.is_active ? 'default' : 'secondary'}>{cat.is_active ? 'Active' : 'Inactive'}</Badge>
-                  <div className="flex gap-1">
-                    <Button variant="ghost" size="icon" onClick={() => openEdit(cat)}><Pencil className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" className="text-destructive" onClick={() => setDeleteId(cat.id)}><Trash2 className="h-4 w-4" /></Button>
+                    
+                    {/* Bottom row on mobile / inline on desktop: Badge and actions */}
+                    <div className="flex items-center justify-between sm:justify-end gap-2 pl-8 sm:pl-0">
+                      <Badge variant={cat.is_active ? 'default' : 'secondary'}>{cat.is_active ? 'Active' : 'Inactive'}</Badge>
+                      <div className="flex gap-1 shrink-0">
+                        <Button variant="ghost" size="icon" onClick={() => openEdit(cat)}><Pencil className="h-4 w-4" /></Button>
+                        <Button variant="ghost" size="icon" className="text-destructive" onClick={() => setDeleteId(cat.id)}><Trash2 className="h-4 w-4" /></Button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               ))}

@@ -12,7 +12,6 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { supabase } from '@/integrations/supabase/client';
 import { Category } from '@/types/database';
 import { toast } from 'sonner';
-
 export default function AdminCategories() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -20,17 +19,16 @@ export default function AdminCategories() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-
   useEffect(() => {
     fetchCategories();
   }, []);
-
   const fetchCategories = async () => {
-    const { data } = await supabase.from('categories').select('*').order('sort_order');
+    const {
+      data
+    } = await supabase.from('categories').select('*').order('sort_order');
     if (data) setCategories(data as Category[]);
     setIsLoading(false);
   };
-
   const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSaving(true);
@@ -40,13 +38,11 @@ export default function AdminCategories() {
       name_bn: form.get('name_bn') as string || null,
       description: form.get('description') as string || null,
       sort_order: parseInt(form.get('sort_order') as string) || 0,
-      is_active: form.get('is_active') === 'on',
+      is_active: form.get('is_active') === 'on'
     };
-
-    const { error } = editItem
-      ? await supabase.from('categories').update(data).eq('id', editItem.id)
-      : await supabase.from('categories').insert(data);
-
+    const {
+      error
+    } = editItem ? await supabase.from('categories').update(data).eq('id', editItem.id) : await supabase.from('categories').insert(data);
     setIsSaving(false);
     if (error) {
       toast.error(error.message);
@@ -57,23 +53,26 @@ export default function AdminCategories() {
       fetchCategories();
     }
   };
-
   const handleDelete = async () => {
     if (!deleteId) return;
-    const { error } = await supabase.from('categories').delete().eq('id', deleteId);
-    if (error) toast.error(error.message);
-    else {
+    const {
+      error
+    } = await supabase.from('categories').delete().eq('id', deleteId);
+    if (error) toast.error(error.message);else {
       toast.success('Category deleted');
       fetchCategories();
     }
     setDeleteId(null);
   };
-
-  const openCreate = () => { setEditItem(null); setIsDialogOpen(true); };
-  const openEdit = (item: Category) => { setEditItem(item); setIsDialogOpen(true); };
-
-  return (
-    <div className="space-y-6">
+  const openCreate = () => {
+    setEditItem(null);
+    setIsDialogOpen(true);
+  };
+  const openEdit = (item: Category) => {
+    setEditItem(item);
+    setIsDialogOpen(true);
+  };
+  return <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-display font-bold">Categories</h1>
@@ -84,31 +83,9 @@ export default function AdminCategories() {
 
       <Card>
         <CardContent className="p-0">
-          {isLoading ? (
-            <div className="p-8 text-center text-muted-foreground">Loading...</div>
-          ) : categories.length === 0 ? (
-            <div className="p-8 text-center text-muted-foreground">No categories yet</div>
-          ) : (
-            <div className="divide-y divide-border">
-              {categories.map((cat) => (
-                <div key={cat.id} className="p-4 flex items-center gap-4 hover:bg-muted/50">
-                  <GripVertical className="h-5 w-5 text-muted-foreground cursor-move" />
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium">{cat.name}</p>
-                      {cat.name_bn && <span className="text-sm font-bengali text-muted-foreground">({cat.name_bn})</span>}
-                    </div>
-                    {cat.description && <p className="text-sm text-muted-foreground">{cat.description}</p>}
-                  </div>
-                  <Badge variant={cat.is_active ? 'default' : 'secondary'}>{cat.is_active ? 'Active' : 'Inactive'}</Badge>
-                  <div className="flex gap-1">
-                    <Button variant="ghost" size="icon" onClick={() => openEdit(cat)}><Pencil className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" className="text-destructive" onClick={() => setDeleteId(cat.id)}><Trash2 className="h-4 w-4" /></Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+          {isLoading ? <div className="p-8 text-center text-muted-foreground">Loading...</div> : categories.length === 0 ? <div className="p-8 text-center text-muted-foreground">No categories yet</div> : <div className="divide-y divide-border">
+              {categories.map(cat => {})}
+            </div>}
         </CardContent>
       </Card>
 
@@ -164,6 +141,5 @@ export default function AdminCategories() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
-  );
+    </div>;
 }

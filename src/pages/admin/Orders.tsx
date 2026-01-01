@@ -73,13 +73,13 @@ export default function AdminOrders() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-display font-bold">Orders</h1>
-          <p className="text-muted-foreground">Manage customer orders</p>
+          <h1 className="text-2xl sm:text-3xl font-display font-bold">Orders</h1>
+          <p className="text-muted-foreground text-sm sm:text-base">Manage customer orders</p>
         </div>
         <Select value={filterStatus} onValueChange={setFilterStatus}>
-          <SelectTrigger className="w-40">
+          <SelectTrigger className="w-full sm:w-40">
             <SelectValue placeholder="Filter" />
           </SelectTrigger>
           <SelectContent>
@@ -91,7 +91,7 @@ export default function AdminOrders() {
         </Select>
       </div>
 
-      <Card>
+      <Card className="overflow-hidden">
         <CardContent className="p-0">
           {isLoading ? (
             <div className="p-8 text-center text-muted-foreground">Loading...</div>
@@ -100,27 +100,58 @@ export default function AdminOrders() {
           ) : (
             <div className="divide-y divide-border">
               {filteredOrders.map((order) => (
-                <div key={order.id} className="p-4 flex items-center justify-between hover:bg-muted/50">
-                  <div className="space-y-1">
-                    <p className="font-medium">#{order.id.slice(0, 8).toUpperCase()}</p>
-                    <p className="text-sm text-muted-foreground">{format(new Date(order.created_at), 'MMM d, h:mm a')}</p>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    {getStatusBadge(order.status)}
-                    <span className="font-bold">₹{order.total_amount}</span>
-                    <Select value={order.status} onValueChange={(v) => updateStatus(order.id, v)}>
-                      <SelectTrigger className="w-36">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {statusOptions.map(s => (
-                          <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Button variant="ghost" size="icon" onClick={() => setSelectedOrder(order)}>
-                      <Eye className="h-4 w-4" />
-                    </Button>
+                <div key={order.id} className="p-3 sm:p-4 hover:bg-muted/50">
+                  {/* Mobile: Stack vertically, Desktop: Row layout */}
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    {/* Order ID and Date */}
+                    <div className="flex items-center justify-between sm:justify-start sm:flex-1 gap-3">
+                      <div className="space-y-0.5 min-w-0">
+                        <p className="font-medium text-sm sm:text-base">#{order.id.slice(0, 8).toUpperCase()}</p>
+                        <p className="text-xs sm:text-sm text-muted-foreground">{format(new Date(order.created_at), 'MMM d, h:mm a')}</p>
+                      </div>
+                      {/* Show badge and price inline on mobile */}
+                      <div className="flex items-center gap-2 sm:hidden">
+                        {getStatusBadge(order.status)}
+                        <span className="font-bold text-sm">₹{order.total_amount}</span>
+                      </div>
+                    </div>
+                    
+                    {/* Desktop: Badge, Price, Status Select, View Button */}
+                    <div className="hidden sm:flex items-center gap-3">
+                      {getStatusBadge(order.status)}
+                      <span className="font-bold">₹{order.total_amount}</span>
+                      <Select value={order.status} onValueChange={(v) => updateStatus(order.id, v)}>
+                        <SelectTrigger className="w-36">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {statusOptions.map(s => (
+                            <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button variant="ghost" size="icon" onClick={() => setSelectedOrder(order)}>
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    
+                    {/* Mobile: Status Select and View Button */}
+                    <div className="flex sm:hidden items-center gap-2 w-full">
+                      <Select value={order.status} onValueChange={(v) => updateStatus(order.id, v)}>
+                        <SelectTrigger className="flex-1 h-9 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {statusOptions.map(s => (
+                            <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button variant="outline" size="sm" className="h-9 px-3" onClick={() => setSelectedOrder(order)}>
+                        <Eye className="h-4 w-4 mr-1" />
+                        View
+                      </Button>
+                    </div>
                   </div>
                 </div>
               ))}

@@ -136,9 +136,9 @@ export default function Orders() {
                     className="cursor-pointer hover:bg-muted/50 transition-colors p-4 sm:p-6"
                     onClick={() => setExpandedOrder(isExpanded ? null : order.id)}
                   >
-                    <div className="flex flex-col gap-3 w-full">
-                      {/* Order info */}
-                      <div className="space-y-1">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 w-full">
+                      {/* Order info - left side */}
+                      <div className="space-y-1 flex-1 min-w-0">
                         <CardTitle className="text-base sm:text-lg break-all leading-tight">
                           Order #{order.id.slice(0, 8).toUpperCase()}
                         </CardTitle>
@@ -147,8 +147,8 @@ export default function Orders() {
                         </p>
                       </div>
                       
-                      {/* Status, Price, and Cancel - responsive wrap */}
-                      <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                      {/* Status, Price, and Cancel - right side */}
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-3 sm:justify-end">
                         <Badge className={`${status.color} text-xs sm:text-sm shrink-0`}>
                           <StatusIcon className="h-3 w-3 mr-1" />
                           {status.label}

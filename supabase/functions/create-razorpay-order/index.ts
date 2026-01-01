@@ -27,12 +27,23 @@ serve(async (req) => {
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+
+    const jwt = authHeader.replace(/^Bearer\s+/i, '').trim();
+    if (!jwt) {
+      console.error('Authorization header missing Bearer token');
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
     
     const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } }
+      global: { headers: { Authorization: authHeader } },
+      auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }
     });
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    // IMPORTANT: pass JWT explicitly (avoids "Auth session missing!")
+    const { data: { user }, error: authError } = await supabase.auth.getUser(jwt);
     if (authError || !user) {
       console.error('Auth error:', authError?.message);
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {

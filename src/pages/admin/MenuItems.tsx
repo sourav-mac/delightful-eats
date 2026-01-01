@@ -181,30 +181,45 @@ export default function AdminMenu() {
           ) : (
             <div className="divide-y divide-border">
               {items.map((item) => (
-                <div key={item.id} className="p-4 flex items-center gap-4 hover:bg-muted/50">
-                  <div className="w-16 h-16 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
-                    {item.image_url ? (
-                      <img src={item.image_url} alt={item.name} className="w-full h-full object-cover rounded-lg" />
-                    ) : (
-                      <span className="text-xl font-bengali text-primary/50">{item.name_bn?.charAt(0) || item.name.charAt(0)}</span>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium truncate">{item.name}</p>
-                    <p className="text-sm text-muted-foreground truncate">{item.description}</p>
-                    <div className="flex flex-wrap items-center gap-1 mt-1">
-                      {item.is_popular && <Badge variant="outline" className="text-popular border-popular px-1.5"><Star className="h-3 w-3" /></Badge>}
-                      {item.is_spicy && <Badge variant="outline" className="text-spicy border-spicy px-1.5"><Flame className="h-3 w-3" /></Badge>}
-                      {item.is_vegetarian && <Badge variant="outline" className="text-vegetarian border-vegetarian px-1.5"><Leaf className="h-3 w-3" /></Badge>}
+                <div key={item.id} className="p-4 hover:bg-muted/50">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+                    {/* Top row on mobile: Image, Name/Description, Action buttons */}
+                    <div className="flex items-start gap-3 sm:contents">
+                      <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+                        {item.image_url ? (
+                          <img src={item.image_url} alt={item.name} className="w-full h-full object-cover rounded-lg" />
+                        ) : (
+                          <span className="text-xl font-bengali text-primary/50">{item.name_bn?.charAt(0) || item.name.charAt(0)}</span>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium truncate text-sm sm:text-base">{item.name}</p>
+                        <p className="text-xs sm:text-sm text-muted-foreground truncate">{item.description}</p>
+                        <div className="flex flex-wrap items-center gap-1 mt-1">
+                          {item.is_popular && <Badge variant="outline" className="text-popular border-popular px-1.5"><Star className="h-3 w-3" /></Badge>}
+                          {item.is_spicy && <Badge variant="outline" className="text-spicy border-spicy px-1.5"><Flame className="h-3 w-3" /></Badge>}
+                          {item.is_vegetarian && <Badge variant="outline" className="text-vegetarian border-vegetarian px-1.5"><Leaf className="h-3 w-3" /></Badge>}
+                        </div>
+                      </div>
+                      {/* Mobile action buttons - inline with content */}
+                      <div className="flex gap-1 flex-shrink-0 sm:hidden">
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(item)}><Pencil className="h-4 w-4" /></Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => setDeleteId(item.id)}><Trash2 className="h-4 w-4" /></Button>
+                      </div>
                     </div>
-                  </div>
-                  <div className="text-right flex-shrink-0 flex flex-col items-end gap-1">
-                    <p className="font-bold text-primary">₹{item.price}</p>
-                    <Badge variant={item.is_available ? 'default' : 'secondary'}>{item.is_available ? 'Available' : 'Unavailable'}</Badge>
-                  </div>
-                  <div className="flex gap-1 flex-shrink-0">
-                    <Button variant="ghost" size="icon" onClick={() => openEdit(item)}><Pencil className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" className="text-destructive" onClick={() => setDeleteId(item.id)}><Trash2 className="h-4 w-4" /></Button>
+                    
+                    {/* Bottom row on mobile: Price and Status */}
+                    <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-4 pl-[68px] sm:pl-0">
+                      <div className="flex items-center gap-2 sm:flex-col sm:items-end">
+                        <p className="font-bold text-primary text-sm sm:text-base">₹{item.price}</p>
+                        <Badge variant={item.is_available ? 'default' : 'secondary'} className="text-xs">{item.is_available ? 'Available' : 'Unavailable'}</Badge>
+                      </div>
+                      {/* Desktop action buttons */}
+                      <div className="hidden sm:flex gap-1 flex-shrink-0">
+                        <Button variant="ghost" size="icon" onClick={() => openEdit(item)}><Pencil className="h-4 w-4" /></Button>
+                        <Button variant="ghost" size="icon" className="text-destructive" onClick={() => setDeleteId(item.id)}><Trash2 className="h-4 w-4" /></Button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               ))}

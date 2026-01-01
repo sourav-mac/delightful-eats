@@ -148,7 +148,7 @@ export default function Orders() {
                       </div>
                       
                       {/* Status, Price, and Cancel - right side */}
-                      <div className="flex flex-wrap items-center gap-2 sm:gap-3 sm:justify-end">
+                      <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2 sm:gap-3 w-full sm:w-auto">
                         <Badge className={`${status.color} text-xs sm:text-sm shrink-0`}>
                           <StatusIcon className="h-3 w-3 mr-1" />
                           {status.label}

@@ -1,12 +1,12 @@
-import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowRight, UtensilsCrossed, Clock, Star, Users, Flame, Leaf, CalendarDays } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Layout } from '@/components/layout/Layout';
-import { supabase } from '@/integrations/supabase/client';
-import { useRestaurantSettings } from '@/hooks/useRestaurantSettings';
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { ArrowRight, UtensilsCrossed, Clock, Star, Users, Flame, Leaf, CalendarDays } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Layout } from "@/components/layout/Layout";
+import { supabase } from "@/integrations/supabase/client";
+import { useRestaurantSettings } from "@/hooks/useRestaurantSettings";
 
 interface MenuItem {
   id: string;
@@ -33,15 +33,15 @@ export default function Index() {
   const fetchPopularDishes = async () => {
     try {
       const { data } = await supabase
-        .from('menu_items')
-        .select('*')
-        .eq('is_popular', true)
-        .eq('is_available', true)
+        .from("menu_items")
+        .select("*")
+        .eq("is_popular", true)
+        .eq("is_available", true)
         .limit(6);
-      
+
       if (data) setPopularDishes(data);
     } catch (error) {
-      console.error('Error fetching popular dishes:', error);
+      console.error("Error fetching popular dishes:", error);
     } finally {
       setIsLoading(false);
     }
@@ -53,38 +53,42 @@ export default function Index() {
       <section className="relative min-h-[80vh] flex items-center overflow-hidden">
         <div className="absolute inset-0 bg-hero-gradient opacity-95" />
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=1920')] bg-cover bg-center mix-blend-overlay opacity-30" />
-        
+
         <div className="container relative z-10 py-20">
           <div className="max-w-2xl space-y-6 text-primary-foreground">
             {/* Restaurant Status Badge */}
-            <div 
-              className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium backdrop-blur-sm animate-fade-in ${settings.isOpen ? 'bg-green-500/20 text-green-200 border border-green-400/30' : 'bg-red-500/20 text-red-200 border border-red-400/30'}`}
+            <div
+              className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium backdrop-blur-sm animate-fade-in ${settings.isOpen ? "bg-green-500/20 text-green-200 border border-green-400/30" : "bg-red-500/20 text-red-200 border border-red-400/30"}`}
             >
-              <span className={`inline-block w-2 h-2 rounded-full ${settings.isOpen ? 'bg-green-400 animate-pulse' : 'bg-red-400'}`} />
+              <span
+                className={`inline-block w-2 h-2 rounded-full ${settings.isOpen ? "bg-green-400 animate-pulse" : "bg-red-400"}`}
+              />
               {settings.isOpen ? (
-                <span>Open Now · {settings.open_time} - {settings.close_time}</span>
+                <span>
+                  Open Now · {settings.open_time} - {settings.close_time}
+                </span>
               ) : (
                 <span>Closed · Opens {settings.open_time}</span>
               )}
             </div>
-            
-            <h1 
+
+            <h1
               className="text-5xl md:text-7xl font-display font-bold leading-tight animate-fade-in opacity-0"
-              style={{ animationDelay: '150ms', animationFillMode: 'forwards' }}
+              style={{ animationDelay: "150ms", animationFillMode: "forwards" }}
             >
-              Authentic Indian Bengali <br />
+              Taste the Heart of Bengal <br />
               <span className="font-bengali">রান্নাঘর</span> Kitchen
             </h1>
-            <p 
+            <p
               className="text-lg md:text-xl opacity-0 animate-fade-in"
-              style={{ animationDelay: '300ms', animationFillMode: 'forwards' }}
+              style={{ animationDelay: "300ms", animationFillMode: "forwards" }}
             >
-              Experience the rich culinary heritage of Kolkata and Bengal. From aromatic Ilish Bhapa to 
-              legendary Kosha Mangsho, every dish is crafted with love and tradition.
+              Experience the rich culinary heritage of Kolkata and Bengal. From aromatic Ilish Bhapa to legendary Kosha
+              Mangsho, every dish is crafted with love and tradition.
             </p>
-            <div 
+            <div
               className="flex flex-wrap gap-4 pt-4 animate-fade-in opacity-0"
-              style={{ animationDelay: '450ms', animationFillMode: 'forwards' }}
+              style={{ animationDelay: "450ms", animationFillMode: "forwards" }}
             >
               <Button size="lg" variant="secondary" asChild>
                 <Link to="/menu">
@@ -93,7 +97,12 @@ export default function Index() {
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
-              <Button size="lg" variant="secondary" className="bg-white/20 border border-white/40 text-white hover:bg-white/30 backdrop-blur-sm" asChild>
+              <Button
+                size="lg"
+                variant="secondary"
+                className="bg-white/20 border border-white/40 text-white hover:bg-white/30 backdrop-blur-sm"
+                asChild
+              >
                 <Link to="/reservations">
                   <CalendarDays className="mr-2 h-5 w-5" />
                   Book a Table
@@ -109,7 +118,11 @@ export default function Index() {
         <div className="container">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             {[
-              { icon: UtensilsCrossed, title: "Authentic Recipes", desc: "Traditional Kolkata recipes passed down generations" },
+              {
+                icon: UtensilsCrossed,
+                title: "Authentic Recipes",
+                desc: "Traditional Kolkata recipes passed down generations",
+              },
               { icon: Clock, title: "Fresh Daily", desc: "Spices ground fresh every morning" },
               { icon: Star, title: "Top Rated", desc: "Loved by food enthusiasts across India" },
               { icon: Users, title: "Family Friendly", desc: "Perfect for celebrations and gatherings" },
@@ -136,15 +149,15 @@ export default function Index() {
                 Our most loved dishes that keep our guests coming back for more
               </p>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {popularDishes.map((dish) => (
                 <Card key={dish.id} className="overflow-hidden hover:shadow-card transition-shadow group">
                   {/* Dish Image */}
                   <div className="relative h-48 overflow-hidden bg-muted">
                     {dish.image_url ? (
-                      <img 
-                        src={dish.image_url} 
+                      <img
+                        src={dish.image_url}
                         alt={dish.name}
                         className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                       />
@@ -157,7 +170,10 @@ export default function Index() {
                     )}
                     {/* Badges overlay */}
                     <div className="absolute top-3 left-3 flex gap-2">
-                      <Badge variant="secondary" className="bg-popular/90 text-popular-foreground border-0 backdrop-blur-sm">
+                      <Badge
+                        variant="secondary"
+                        className="bg-popular/90 text-popular-foreground border-0 backdrop-blur-sm"
+                      >
                         <Star className="h-3 w-3 mr-1" />
                         Popular
                       </Badge>
@@ -175,14 +191,12 @@ export default function Index() {
                       )}
                     </div>
                   </div>
-                  
+
                   <CardContent className="p-5">
                     <div className="space-y-2">
                       <div>
                         <h3 className="font-display font-semibold text-lg">{dish.name}</h3>
-                        {dish.name_bn && (
-                          <p className="text-sm font-bengali text-muted-foreground">{dish.name_bn}</p>
-                        )}
+                        {dish.name_bn && <p className="text-sm font-bengali text-muted-foreground">{dish.name_bn}</p>}
                       </div>
                       {dish.description && (
                         <p className="text-sm text-muted-foreground line-clamp-2">{dish.description}</p>
@@ -209,13 +223,14 @@ export default function Index() {
 
             <div className="text-center mt-10">
               <Button size="lg" variant="outline" asChild>
-                <Link to="/menu">View Full Menu <ArrowRight className="ml-2 h-4 w-4" /></Link>
+                <Link to="/menu">
+                  View Full Menu <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
               </Button>
             </div>
           </div>
         </section>
       )}
-
     </Layout>
   );
 }

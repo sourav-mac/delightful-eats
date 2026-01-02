@@ -26,13 +26,14 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export function CartProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const [items, setItems] = useState<CartItemWithDetails[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (user) {
       fetchCartItems();
     } else {
       setItems([]);
+      setIsLoading(false);
     }
   }, [user]);
 
@@ -45,7 +46,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
       .select(`
         id,
         quantity,
-        menu_item_id,
         menu_items (
           id,
           name,
@@ -61,23 +61,22 @@ export function CartProvider({ children }: { children: ReactNode }) {
           preparation_time
         )
       `)
-      .eq('user_id', user.id);
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: true }); // Keep a stable order
 
     if (error) {
       console.error('Error fetching cart:', error);
-      setIsLoading(false);
-      return;
+      toast.error("Failed to fetch your cart items.");
+    } else {
+        const cartItems: CartItemWithDetails[] = (data || [])
+        .filter((item: any) => item.menu_items)
+        .map((item: any) => ({
+          id: item.id,
+          menuItem: item.menu_items as MenuItem,
+          quantity: item.quantity,
+        }));
+        setItems(cartItems);
     }
-
-    const cartItems: CartItemWithDetails[] = (data || [])
-      .filter((item: any) => item.menu_items)
-      .map((item: any) => ({
-        id: item.id,
-        menuItem: item.menu_items as MenuItem,
-        quantity: item.quantity,
-      }));
-
-    setItems(cartItems);
     setIsLoading(false);
   };
 
@@ -91,24 +90,50 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
     if (existingItem) {
       await updateQuantity(menuItem.id, existingItem.quantity + quantity);
+      toast.success(`${menuItem.name} quantity updated`);
       return;
     }
 
-    const { error } = await supabase
+    const { data: newItemData, error } = await supabase
       .from('cart_items')
       .insert({
         user_id: user.id,
         menu_item_id: menuItem.id,
         quantity,
-      });
+      })
+      .select(`
+        id,
+        quantity,
+        menu_items (
+          id,
+          name,
+          name_bn,
+          description,
+          price,
+          original_price,
+          image_url,
+          is_vegetarian,
+          is_spicy,
+          is_popular,
+          is_available,
+          preparation_time
+        )
+      `)
+      .single();
 
-    if (error) {
+    if (error || !newItemData) {
       toast.error('Failed to add item to cart');
       return;
     }
 
+    const newItem: CartItemWithDetails = {
+        id: newItemData.id,
+        quantity: newItemData.quantity,
+        menuItem: newItemData.menu_items as MenuItem,
+    };
+    
+    setItems(prevItems => [...prevItems, newItem]);
     toast.success(`${menuItem.name} added to cart`);
-    await fetchCartItems();
   };
 
   const updateQuantity = async (menuItemId: string, quantity: number) => {
@@ -119,6 +144,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
       return;
     }
 
+    const originalItems = [...items];
+    
+    const updatedItems = items.map(item =>
+      item.menuItem.id === menuItemId
+        ? { ...item, quantity }
+        : item
+    );
+    setItems(updatedItems);
+
     const { error } = await supabase
       .from('cart_items')
       .update({ quantity })
@@ -127,14 +161,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
     if (error) {
       toast.error('Failed to update quantity');
-      return;
+      setItems(originalItems); // Revert on failure
     }
-
-    await fetchCartItems();
   };
 
   const removeItem = async (menuItemId: string) => {
     if (!user) return;
+
+    const originalItems = [...items];
+    const removedItemName = originalItems.find(i => i.menuItem.id === menuItemId)?.menuItem.name;
+    
+    const updatedItems = items.filter(item => item.menuItem.id !== menuItemId);
+    setItems(updatedItems);
 
     const { error } = await supabase
       .from('cart_items')
@@ -144,15 +182,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
     if (error) {
       toast.error('Failed to remove item');
-      return;
+      setItems(originalItems); // Revert on failure
+    } else {
+        if(removedItemName) toast.success(`${removedItemName} removed from cart`);
     }
-
-    toast.success('Item removed from cart');
-    await fetchCartItems();
   };
 
   const clearCart = async () => {
     if (!user) return;
+    
+    const originalItems = [...items];
+    setItems([]);
 
     const { error } = await supabase
       .from('cart_items')
@@ -161,10 +201,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
     if (error) {
       toast.error('Failed to clear cart');
-      return;
+      setItems(originalItems); // Revert on failure
     }
-
-    setItems([]);
   };
 
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);

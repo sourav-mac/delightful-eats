@@ -77,7 +77,7 @@ export default function Index() {
               style={{ animationDelay: "150ms", animationFillMode: "forwards" }}
             >
               Taste the Heart of Bengal <br />
-              <span className="font-bengali">রান্নাঘর</span> Kitchen
+              <span className="font-bengali">প্রতিটি পদে বাঙালিয়ানার উৎসব</span> Kitchen
             </h1>
             <p
               className="text-lg md:text-xl opacity-0 animate-fade-in"

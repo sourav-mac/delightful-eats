@@ -106,29 +106,34 @@ export default function AdminReservations() {
             ) : (
               <div className="divide-y divide-border">
                 {upcomingReservations.map((res) => (
-                  <div key={res.id} className="p-4 flex items-center justify-between hover:bg-muted/50">
-                    <div className="space-y-1">
-                      <p className="font-medium">{res.guest_name}</p>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <span className="flex items-center gap-1"><CalendarDays className="h-3 w-3" /> {format(new Date(res.reservation_date), 'MMM d, yyyy')}</span>
-                        <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {res.reservation_time}</span>
-                        <span className="flex items-center gap-1"><Users className="h-3 w-3" /> {res.party_size}</span>
-                        <span className="flex items-center gap-1"><Phone className="h-3 w-3" /> {res.guest_phone}</span>
+                  <div key={res.id} className="p-4 hover:bg-muted/50">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                      {/* Guest info */}
+                      <div className="flex-1 min-w-0 space-y-1">
+                        <p className="font-medium truncate">{res.guest_name}</p>
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
+                          <span className="flex items-center gap-1"><CalendarDays className="h-3 w-3 shrink-0" /> {format(new Date(res.reservation_date), 'MMM d, yyyy')}</span>
+                          <span className="flex items-center gap-1"><Clock className="h-3 w-3 shrink-0" /> {res.reservation_time}</span>
+                          <span className="flex items-center gap-1"><Users className="h-3 w-3 shrink-0" /> {res.party_size}</span>
+                          <span className="flex items-center gap-1"><Phone className="h-3 w-3 shrink-0" /> {res.guest_phone}</span>
+                        </div>
+                        {res.special_requests && <p className="text-sm text-muted-foreground italic line-clamp-1">"{res.special_requests}"</p>}
                       </div>
-                      {res.special_requests && <p className="text-sm text-muted-foreground italic">"{res.special_requests}"</p>}
-                    </div>
-                    <div className="flex items-center gap-3">
-                      {getStatusBadge(res.status)}
-                      <Select value={res.status} onValueChange={(v) => updateStatus(res.id, v)}>
-                        <SelectTrigger className="w-32">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {statusOptions.map(s => (
-                            <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      
+                      {/* Status and actions */}
+                      <div className="flex items-center justify-between sm:justify-end gap-2">
+                        {getStatusBadge(res.status)}
+                        <Select value={res.status} onValueChange={(v) => updateStatus(res.id, v)}>
+                          <SelectTrigger className="w-28 sm:w-32">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {statusOptions.map(s => (
+                              <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -146,16 +151,20 @@ export default function AdminReservations() {
             <CardContent className="p-0">
               <div className="divide-y divide-border">
                 {pastReservations.slice(0, 10).map((res) => (
-                  <div key={res.id} className="p-4 flex items-center justify-between hover:bg-muted/50 opacity-70">
-                    <div className="space-y-1">
-                      <p className="font-medium">{res.guest_name}</p>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <span className="flex items-center gap-1"><CalendarDays className="h-3 w-3" /> {format(new Date(res.reservation_date), 'MMM d, yyyy')}</span>
-                        <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {res.reservation_time}</span>
-                        <span className="flex items-center gap-1"><Users className="h-3 w-3" /> {res.party_size}</span>
+                  <div key={res.id} className="p-4 hover:bg-muted/50 opacity-70">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                      <div className="flex-1 min-w-0 space-y-1">
+                        <p className="font-medium truncate">{res.guest_name}</p>
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
+                          <span className="flex items-center gap-1"><CalendarDays className="h-3 w-3 shrink-0" /> {format(new Date(res.reservation_date), 'MMM d, yyyy')}</span>
+                          <span className="flex items-center gap-1"><Clock className="h-3 w-3 shrink-0" /> {res.reservation_time}</span>
+                          <span className="flex items-center gap-1"><Users className="h-3 w-3 shrink-0" /> {res.party_size}</span>
+                        </div>
+                      </div>
+                      <div className="self-start sm:self-center">
+                        {getStatusBadge(res.status)}
                       </div>
                     </div>
-                    {getStatusBadge(res.status)}
                   </div>
                 ))}
               </div>

@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface RestaurantSettings {
   open_time: string;
@@ -11,8 +11,8 @@ export interface RestaurantSettings {
 
 export function useRestaurantSettings() {
   const [settings, setSettings] = useState<RestaurantSettings>({
-    open_time: '10:00',
-    close_time: '22:00',
+    open_time: "10:00",
+    close_time: "22:00",
     min_order_price: 100,
     delivery_charge: 50,
     isOpen: true,
@@ -25,13 +25,18 @@ export function useRestaurantSettings() {
       settingsMap[row.setting_key] = row.setting_value;
     });
 
-    const openTime = settingsMap.open_time || '10:00';
-    const closeTime = settingsMap.close_time || '22:00';
-    const minOrderPrice = parseFloat(settingsMap.min_order_price) || 100;
-    const deliveryCharge = parseFloat(settingsMap.delivery_charge) || 50;
+    const openTime = settingsMap.open_time || "10:00";
+    const closeTime = settingsMap.close_time || "22:00";
+
+    // Correctly parse numbers, handling "0" as a valid value
+    const rawMinOrder = settingsMap.min_order_price;
+    const minOrderPrice = rawMinOrder != null && !isNaN(parseFloat(rawMinOrder)) ? parseFloat(rawMinOrder) : 100;
+
+    const rawDelivery = settingsMap.delivery_charge;
+    const deliveryCharge = rawDelivery != null && !isNaN(parseFloat(rawDelivery)) ? parseFloat(rawDelivery) : 50;
 
     const now = new Date();
-    const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+    const currentTime = `${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`;
     const isOpen = currentTime >= openTime && currentTime <= closeTime;
 
     return {
@@ -44,12 +49,10 @@ export function useRestaurantSettings() {
   };
 
   const fetchSettings = async () => {
-    const { data, error } = await supabase
-      .from('restaurant_settings')
-      .select('*');
+    const { data, error } = await supabase.from("restaurant_settings").select("*");
 
     if (error) {
-      console.error('Failed to load settings:', error);
+      console.error("Failed to load settings:", error);
     } else if (data) {
       setSettings(parseSettings(data));
     }
@@ -61,17 +64,17 @@ export function useRestaurantSettings() {
 
     // Subscribe to real-time changes
     const channel = supabase
-      .channel('restaurant-settings-changes')
+      .channel("restaurant-settings-changes")
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: '*',
-          schema: 'public',
-          table: 'restaurant_settings',
+          event: "*",
+          schema: "public",
+          table: "restaurant_settings",
         },
         () => {
           fetchSettings();
-        }
+        },
       )
       .subscribe();
 

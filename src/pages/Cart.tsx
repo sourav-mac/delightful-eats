@@ -6,11 +6,13 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Separator } from '@/components/ui/separator';
 import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useRestaurantSettings } from '@/hooks/useRestaurantSettings';
 
 export default function Cart() {
-  const { items, total, updateQuantity, removeItem, isLoading } = useCart();
+  const { items, total, updateQuantity, removeItem } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { settings: restaurantSettings } = useRestaurantSettings();
 
   if (!user) {
     return (
@@ -42,7 +44,7 @@ export default function Cart() {
     );
   }
 
-  const deliveryFee = 50;
+  const deliveryFee = restaurantSettings.delivery_charge;
   const grandTotal = total + deliveryFee;
 
   return (
@@ -106,7 +108,7 @@ export default function Cart() {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Delivery Fee</span>
-                  <span>₹{deliveryFee}</span>
+                  <span>₹{deliveryFee.toFixed(2)}</span>
                 </div>
                 <Separator />
                 <div className="flex justify-between font-bold text-lg">

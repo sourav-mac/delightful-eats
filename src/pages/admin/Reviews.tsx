@@ -90,10 +90,11 @@ export default function AdminReviews() {
             <div className="divide-y divide-border">
               {filteredReviews.map((review: any) => (
                 <div key={review.id} className="p-4 hover:bg-muted/50">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 space-y-2">
-                      <div className="flex items-center gap-3">
-                        <div className="flex">
+                  <div className="flex flex-col sm:flex-row sm:items-start gap-3">
+                    {/* Review content */}
+                    <div className="flex-1 min-w-0 space-y-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <div className="flex shrink-0">
                           {[1, 2, 3, 4, 5].map((star) => (
                             <Star
                               key={star}
@@ -102,20 +103,22 @@ export default function AdminReviews() {
                           ))}
                         </div>
                         {review.menu_items?.name && (
-                          <Badge variant="outline">{review.menu_items.name}</Badge>
+                          <Badge variant="outline" className="truncate max-w-[150px]">{review.menu_items.name}</Badge>
                         )}
                         <Badge variant={review.is_approved ? 'default' : 'secondary'}>
                           {review.is_approved ? 'Approved' : 'Pending'}
                         </Badge>
                       </div>
                       {review.comment && (
-                        <p className="text-foreground">{review.comment}</p>
+                        <p className="text-foreground line-clamp-2 sm:line-clamp-none">{review.comment}</p>
                       )}
                       <p className="text-sm text-muted-foreground">
                         {format(new Date(review.created_at), 'MMM d, yyyy')}
                       </p>
                     </div>
-                    <div className="flex gap-1">
+                    
+                    {/* Actions */}
+                    <div className="flex gap-1 shrink-0 self-end sm:self-start">
                       <Button
                         variant="ghost"
                         size="icon"

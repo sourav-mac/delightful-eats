@@ -115,9 +115,9 @@ export default function Checkout() {
               return;
             }
 
-            // Clear cart only after successful payment verification
-            await onClearCart();
+            // Set orderPlaced first to prevent redirect, then clear cart
             setOrderPlaced(true);
+            await onClearCart();
             toast.success('Payment verified! Order placed.');
           } catch (err) {
             console.error('Payment verification error:', err);
@@ -261,9 +261,9 @@ export default function Checkout() {
         // For Razorpay: cart will be cleared after successful payment verification
         await processRazorpayPayment(order.id, validatedData.phone, clearCart);
       } else {
-        // Cash on delivery: clear cart immediately
-        await clearCart();
+        // Cash on delivery: order confirmed on creation, set orderPlaced first to prevent redirect
         setOrderPlaced(true);
+        await clearCart();
         toast.success('Order placed successfully!');
         setIsSubmitting(false);
       }

@@ -70,7 +70,7 @@ export default function Checkout() {
     };
   }, []);
 
-  const processRazorpayPayment = async (orderId: string, userPhone: string) => {
+  const processRazorpayPayment = async (orderId: string, userPhone: string, onClearCart: () => Promise<void>) => {
     try {
       // Get fresh session token to avoid "Auth session missing" errors
       const { data: { session } } = await supabase.auth.refreshSession();
@@ -115,6 +115,8 @@ export default function Checkout() {
               return;
             }
 
+            // Clear cart only after successful payment verification
+            await onClearCart();
             setOrderPlaced(true);
             toast.success('Payment verified! Order placed.');
           } catch (err) {
@@ -254,14 +256,13 @@ export default function Checkout() {
         },
       }).catch(console.error);
 
-      // Clear local cart (server already cleared it)
-      await clearCart();
-
       // Process payment based on method
       if (paymentMethod === 'razorpay') {
-        await processRazorpayPayment(order.id, validatedData.phone);
+        // For Razorpay: cart will be cleared after successful payment verification
+        await processRazorpayPayment(order.id, validatedData.phone, clearCart);
       } else {
-        // Cash on delivery
+        // Cash on delivery: clear cart immediately
+        await clearCart();
         setOrderPlaced(true);
         toast.success('Order placed successfully!');
         setIsSubmitting(false);

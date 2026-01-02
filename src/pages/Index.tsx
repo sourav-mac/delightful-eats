@@ -83,8 +83,8 @@ export default function Index() {
               className="text-lg md:text-xl opacity-0 animate-fade-in"
               style={{ animationDelay: "300ms", animationFillMode: "forwards" }}
             >
-              Experience the rich culinary heritage of Kolkata and Bengal. From aromatic Ilish Bhapa to legendary Kosha
-              Mangsho, every dish is crafted with love and tradition.
+              Traditional recipes, premium ingredients, and unforgettable flavours. Your Bengali comfort food
+              destination — every day, every bite.
             </p>
             <div
               className="flex flex-wrap gap-4 pt-4 animate-fade-in opacity-0"

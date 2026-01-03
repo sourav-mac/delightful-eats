@@ -42,6 +42,9 @@ export function Footer() {
               <Link to="/reviews" className="text-sm text-background/70 hover:text-primary transition-colors">
                 Customer Reviews
               </Link>
+              <Link to="/contact" className="text-sm text-background/70 hover:text-primary transition-colors">
+                Contact Us
+              </Link>
               <Link to="/auth" className="text-sm text-background/70 hover:text-primary transition-colors">
                 Sign In / Sign Up
               </Link>
@@ -79,11 +82,11 @@ export function Footer() {
               </div>
               <div className="flex items-center gap-3">
                 <Phone className="h-4 w-4 text-primary" />
-                <span className="text-sm text-background/70">+91 33 2234 5678</span>
+                <span className="text-sm text-background/70">+91 9832358231</span>
               </div>
               <div className="flex items-center gap-3">
                 <Mail className="h-4 w-4 text-primary" />
-                <span className="text-sm text-background/70">hello@petuk.in</span>
+                <span className="text-sm text-background/70">mandalsourav026@gmail.com</span>
               </div>
             </div>
           </div>

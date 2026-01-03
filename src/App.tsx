@@ -27,6 +27,10 @@ import AdminReservations from "./pages/admin/Reservations";
 import AdminReviews from "./pages/admin/Reviews";
 import AdminSettings from "./pages/admin/Settings";
 import NotFound from "./pages/NotFound";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsConditions from "./pages/TermsConditions";
+import RefundPolicy from "./pages/RefundPolicy";
+import ShippingPolicy from "./pages/ShippingPolicy";
 
 const queryClient = new QueryClient();
 
@@ -44,6 +48,10 @@ const App = () => (
               <Route path="/auth" element={<Auth />} />
               <Route path="/menu" element={<Menu />} />
               <Route path="/reviews" element={<Reviews />} />
+              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+              <Route path="/terms-conditions" element={<TermsConditions />} />
+              <Route path="/refund-policy" element={<RefundPolicy />} />
+              <Route path="/shipping-policy" element={<ShippingPolicy />} />
               
               {/* Protected User Routes */}
               <Route path="/cart" element={<ProtectedRoute><Cart /></ProtectedRoute>} />

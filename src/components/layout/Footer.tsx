@@ -5,7 +5,7 @@ export function Footer() {
   return (
     <footer className="bg-foreground text-background">
       <div className="container py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
           {/* Brand */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
@@ -44,6 +44,25 @@ export function Footer() {
               </Link>
               <Link to="/auth" className="text-sm text-background/70 hover:text-primary transition-colors">
                 Sign In / Sign Up
+              </Link>
+            </nav>
+          </div>
+
+          {/* Policies */}
+          <div className="space-y-4">
+            <h4 className="font-display font-semibold text-lg">Policies</h4>
+            <nav className="flex flex-col gap-2">
+              <Link to="/privacy-policy" className="text-sm text-background/70 hover:text-primary transition-colors">
+                Privacy Policy
+              </Link>
+              <Link to="/terms-conditions" className="text-sm text-background/70 hover:text-primary transition-colors">
+                Terms & Conditions
+              </Link>
+              <Link to="/refund-policy" className="text-sm text-background/70 hover:text-primary transition-colors">
+                Refund Policy
+              </Link>
+              <Link to="/shipping-policy" className="text-sm text-background/70 hover:text-primary transition-colors">
+                Shipping & Delivery
               </Link>
             </nav>
           </div>

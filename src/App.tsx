@@ -31,6 +31,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsConditions from "./pages/TermsConditions";
 import RefundPolicy from "./pages/RefundPolicy";
 import ShippingPolicy from "./pages/ShippingPolicy";
+import ContactUs from "./pages/ContactUs";
 
 const queryClient = new QueryClient();
 
@@ -52,6 +53,7 @@ const App = () => (
               <Route path="/terms-conditions" element={<TermsConditions />} />
               <Route path="/refund-policy" element={<RefundPolicy />} />
               <Route path="/shipping-policy" element={<ShippingPolicy />} />
+              <Route path="/contact" element={<ContactUs />} />
               
               {/* Protected User Routes */}
               <Route path="/cart" element={<ProtectedRoute><Cart /></ProtectedRoute>} />

@@ -105,8 +105,8 @@ const ShippingPolicy = () => {
           <section>
             <h2 className="text-xl font-semibold mb-3">10. Contact</h2>
             <p>For delivery-related queries:</p>
-            <p className="mt-2">Email: delivery@petuk.com</p>
-            <p>Phone: +91 XXXXXXXXXX</p>
+            <p className="mt-2">Email: mandalsourav026@gmail.com</p>
+            <p>Phone: +91 9832358231</p>
           </section>
         </div>
       </div>

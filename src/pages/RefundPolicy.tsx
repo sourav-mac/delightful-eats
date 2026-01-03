@@ -73,8 +73,8 @@ const RefundPolicy = () => {
           <section>
             <h2 className="text-xl font-semibold mb-3">7. Contact for Refunds</h2>
             <p>To request a refund or report an issue:</p>
-            <p className="mt-2">Email: refunds@petuk.com</p>
-            <p>Phone: +91 XXXXXXXXXX</p>
+            <p className="mt-2">Email: mandalsourav026@gmail.com</p>
+            <p>Phone: +91 9832358231</p>
             <p className="mt-3">Please have your order ID ready when contacting us.</p>
           </section>
         </div>

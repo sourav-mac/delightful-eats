@@ -66,8 +66,8 @@ const PrivacyPolicy = () => {
           <section>
             <h2 className="text-xl font-semibold mb-3">7. Contact Us</h2>
             <p>If you have any questions about this Privacy Policy, please contact us at:</p>
-            <p className="mt-2">Email: privacy@petuk.com</p>
-            <p>Phone: +91 XXXXXXXXXX</p>
+            <p className="mt-2">Email: mandalsourav026@gmail.com</p>
+            <p>Phone: +91 9832358231</p>
           </section>
         </div>
       </div>

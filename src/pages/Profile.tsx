@@ -1,16 +1,16 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { User, Phone, Mail, Save } from 'lucide-react';
-import { Layout } from '@/components/layout/Layout';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
-import { Profile as ProfileType } from '@/types/database';
-import { toast } from 'sonner';
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { User, Phone, Mail, Save } from "lucide-react";
+import { Layout } from "@/components/layout/Layout";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { Profile as ProfileType } from "@/types/database";
+import { toast } from "sonner";
 
 export default function Profile() {
   const { user, signOut } = useAuth();
@@ -21,7 +21,7 @@ export default function Profile() {
 
   useEffect(() => {
     if (!user) {
-      navigate('/auth');
+      navigate("/auth");
       return;
     }
     fetchProfile();
@@ -29,13 +29,9 @@ export default function Profile() {
 
   const fetchProfile = async () => {
     if (!user) return;
-    
-    const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', user.id)
-      .maybeSingle();
-    
+
+    const { data } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
+
     if (data) setProfile(data as ProfileType);
     setIsLoading(false);
   };
@@ -48,26 +44,26 @@ export default function Profile() {
     const formData = new FormData(e.currentTarget);
 
     const { error } = await supabase
-      .from('profiles')
+      .from("profiles")
       .update({
-        full_name: formData.get('full_name') as string,
-        phone: formData.get('phone') as string,
+        full_name: formData.get("full_name") as string,
+        phone: formData.get("phone") as string,
       })
-      .eq('id', user.id);
+      .eq("id", user.id);
 
     setIsSaving(false);
 
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success('Profile updated successfully');
+      toast.success("Profile updated successfully");
       fetchProfile();
     }
   };
 
   const handleSignOut = async () => {
     await signOut();
-    navigate('/');
+    navigate("/");
   };
 
   if (!user) return null;
@@ -83,18 +79,16 @@ export default function Profile() {
             <CardContent className="pt-6">
               <div className="flex items-center gap-4">
                 <Avatar className="h-20 w-20">
-                  <AvatarImage 
-                    src={profile?.avatar_url || user.user_metadata?.avatar_url} 
-                    alt={profile?.full_name || 'User'} 
+                  <AvatarImage
+                    src={profile?.avatar_url || user.user_metadata?.avatar_url}
+                    alt={profile?.full_name || "User"}
                   />
                   <AvatarFallback className="bg-primary text-primary-foreground text-2xl">
-                    {profile?.full_name?.charAt(0)?.toUpperCase() || user.email?.charAt(0)?.toUpperCase() || 'U'}
+                    {profile?.full_name?.charAt(0)?.toUpperCase() || user.email?.charAt(0)?.toUpperCase() || "U"}
                   </AvatarFallback>
                 </Avatar>
                 <div className="min-w-0 flex-1">
-                  <h2 className="text-xl font-display font-semibold truncate">
-                    {profile?.full_name || 'User'}
-                  </h2>
+                  <h2 className="text-xl font-display font-semibold truncate">{profile?.full_name || "User"}</h2>
                   <p className="text-muted-foreground text-sm break-all">{user.email}</p>
                 </div>
               </div>
@@ -123,7 +117,7 @@ export default function Profile() {
                       <Input
                         id="full_name"
                         name="full_name"
-                        defaultValue={profile?.full_name || ''}
+                        defaultValue={profile?.full_name || ""}
                         placeholder="Your name"
                         className="pl-10"
                       />
@@ -134,12 +128,7 @@ export default function Profile() {
                     <Label htmlFor="email">Email</Label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="email"
-                        value={user.email || ''}
-                        disabled
-                        className="pl-10 bg-muted"
-                      />
+                      <Input id="email" value={user.email || ""} disabled className="pl-10 bg-muted" />
                     </div>
                     <p className="text-xs text-muted-foreground">Email cannot be changed</p>
                   </div>
@@ -151,8 +140,8 @@ export default function Profile() {
                       <Input
                         id="phone"
                         name="phone"
-                        defaultValue={profile?.phone || ''}
-                        placeholder="+880 1XXX-XXXXXX"
+                        defaultValue={profile?.phone || ""}
+                        placeholder="+91 98XXXXXXXX"
                         className="pl-10"
                       />
                     </div>
@@ -160,7 +149,7 @@ export default function Profile() {
 
                   <Button type="submit" disabled={isSaving}>
                     <Save className="h-4 w-4 mr-2" />
-                    {isSaving ? 'Saving...' : 'Save Changes'}
+                    {isSaving ? "Saving..." : "Save Changes"}
                   </Button>
                 </form>
               )}

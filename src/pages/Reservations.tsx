@@ -1,18 +1,18 @@
-import { useState, useEffect } from 'react';
-import { CalendarDays, Clock, Users, CheckCircle } from 'lucide-react';
-import { Layout } from '@/components/layout/Layout';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
-import { Reservation } from '@/types/database';
-import { toast } from 'sonner';
-import { format, differenceInHours, parseISO } from 'date-fns';
+import { useState, useEffect } from "react";
+import { CalendarDays, Clock, Users, CheckCircle } from "lucide-react";
+import { Layout } from "@/components/layout/Layout";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { Reservation } from "@/types/database";
+import { toast } from "sonner";
+import { format, differenceInHours, parseISO } from "date-fns";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,11 +23,25 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+} from "@/components/ui/alert-dialog";
 
 const timeSlots = [
-  '11:00', '11:30', '12:00', '12:30', '13:00', '13:30', '14:00', '14:30',
-  '18:00', '18:30', '19:00', '19:30', '20:00', '20:30', '21:00', '21:30'
+  "11:00",
+  "11:30",
+  "12:00",
+  "12:30",
+  "13:00",
+  "13:30",
+  "14:00",
+  "14:30",
+  "18:00",
+  "18:30",
+  "19:00",
+  "19:30",
+  "20:00",
+  "20:30",
+  "21:00",
+  "21:30",
 ];
 
 export default function Reservations() {
@@ -43,16 +57,16 @@ export default function Reservations() {
 
   const fetchReservations = async () => {
     const { data } = await supabase
-      .from('reservations')
-      .select('*')
-      .eq('user_id', user?.id)
-      .order('reservation_date', { ascending: false });
+      .from("reservations")
+      .select("*")
+      .eq("user_id", user?.id)
+      .order("reservation_date", { ascending: false });
     if (data) setReservations(data as Reservation[]);
   };
 
   // Can cancel if reservation is 24+ hours away and not already cancelled
   const canCancelReservation = (reservation: Reservation) => {
-    if (reservation.status === 'cancelled') return false;
+    if (reservation.status === "cancelled") return false;
     const reservationDateTime = parseISO(`${reservation.reservation_date}T${reservation.reservation_time}`);
     const hoursUntilReservation = differenceInHours(reservationDateTime, new Date());
     return hoursUntilReservation >= 24;
@@ -60,15 +74,12 @@ export default function Reservations() {
 
   const handleCancelReservation = async (reservationId: string) => {
     setCancellingId(reservationId);
-    const { error } = await supabase
-      .from('reservations')
-      .update({ status: 'cancelled' })
-      .eq('id', reservationId);
+    const { error } = await supabase.from("reservations").update({ status: "cancelled" }).eq("id", reservationId);
 
     if (error) {
-      toast.error('Failed to cancel reservation');
+      toast.error("Failed to cancel reservation");
     } else {
-      toast.success('Reservation cancelled successfully');
+      toast.success("Reservation cancelled successfully");
       fetchReservations();
     }
     setCancellingId(null);
@@ -77,28 +88,28 @@ export default function Reservations() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!user) {
-      toast.error('Please sign in to make a reservation');
+      toast.error("Please sign in to make a reservation");
       return;
     }
 
     setIsSubmitting(true);
     const formData = new FormData(e.currentTarget);
 
-    const guestName = formData.get('name') as string;
-    const guestPhone = formData.get('phone') as string;
-    const reservationDate = formData.get('date') as string;
-    const reservationTime = formData.get('time') as string;
-    const partySize = parseInt(formData.get('party_size') as string);
+    const guestName = formData.get("name") as string;
+    const guestPhone = formData.get("phone") as string;
+    const reservationDate = formData.get("date") as string;
+    const reservationTime = formData.get("time") as string;
+    const partySize = parseInt(formData.get("party_size") as string);
 
-    const { error } = await supabase.from('reservations').insert({
+    const { error } = await supabase.from("reservations").insert({
       user_id: user.id,
       guest_name: guestName,
-      guest_email: formData.get('email') as string,
+      guest_email: formData.get("email") as string,
       guest_phone: guestPhone,
       party_size: partySize,
       reservation_date: reservationDate,
       reservation_time: reservationTime,
-      special_requests: formData.get('requests') as string,
+      special_requests: formData.get("requests") as string,
     });
 
     setIsSubmitting(false);
@@ -107,18 +118,20 @@ export default function Reservations() {
       toast.error(error.message);
     } else {
       // Send SMS notification to admin
-      supabase.functions.invoke('send-sms', {
-        body: {
-          type: 'new_reservation',
-          data: {
-            guestName,
-            phone: guestPhone,
-            date: reservationDate,
-            time: reservationTime,
-            partySize,
+      supabase.functions
+        .invoke("send-sms", {
+          body: {
+            type: "new_reservation",
+            data: {
+              guestName,
+              phone: guestPhone,
+              date: reservationDate,
+              time: reservationTime,
+              partySize,
+            },
           },
-        },
-      }).catch(console.error);
+        })
+        .catch(console.error);
 
       setShowSuccess(true);
       fetchReservations();
@@ -129,15 +142,18 @@ export default function Reservations() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'confirmed': return 'bg-success text-success-foreground';
-      case 'cancelled': return 'bg-destructive text-destructive-foreground';
-      default: return 'bg-accent text-accent-foreground';
+      case "confirmed":
+        return "bg-success text-success-foreground";
+      case "cancelled":
+        return "bg-destructive text-destructive-foreground";
+      default:
+        return "bg-accent text-accent-foreground";
     }
   };
 
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
-  const minDate = format(tomorrow, 'yyyy-MM-dd');
+  const minDate = format(tomorrow, "yyyy-MM-dd");
 
   return (
     <Layout>
@@ -170,7 +186,7 @@ export default function Reservations() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="phone">Phone</Label>
-                    <Input id="phone" name="phone" required placeholder="+880 1XXX" />
+                    <Input id="phone" name="phone" required placeholder="+91983XXX" />
                   </div>
                 </div>
 
@@ -191,8 +207,10 @@ export default function Reservations() {
                         <SelectValue placeholder="Select" />
                       </SelectTrigger>
                       <SelectContent>
-                        {timeSlots.map(time => (
-                          <SelectItem key={time} value={time}>{time}</SelectItem>
+                        {timeSlots.map((time) => (
+                          <SelectItem key={time} value={time}>
+                            {time}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -204,8 +222,10 @@ export default function Reservations() {
                         <SelectValue placeholder="Select" />
                       </SelectTrigger>
                       <SelectContent>
-                        {[1, 2, 3, 4, 5, 6, 7, 8, 10, 12].map(n => (
-                          <SelectItem key={n} value={n.toString()}>{n} {n === 1 ? 'guest' : 'guests'}</SelectItem>
+                        {[1, 2, 3, 4, 5, 6, 7, 8, 10, 12].map((n) => (
+                          <SelectItem key={n} value={n.toString()}>
+                            {n} {n === 1 ? "guest" : "guests"}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -214,11 +234,16 @@ export default function Reservations() {
 
                 <div className="space-y-2">
                   <Label htmlFor="requests">Special Requests (Optional)</Label>
-                  <Textarea id="requests" name="requests" placeholder="Any dietary requirements or special occasions?" rows={3} />
+                  <Textarea
+                    id="requests"
+                    name="requests"
+                    placeholder="Any dietary requirements or special occasions?"
+                    rows={3}
+                  />
                 </div>
 
                 <Button type="submit" className="w-full" disabled={isSubmitting || !user}>
-                  {!user ? 'Sign in to Reserve' : isSubmitting ? 'Submitting...' : 'Book Table'}
+                  {!user ? "Sign in to Reserve" : isSubmitting ? "Submitting..." : "Book Table"}
                 </Button>
               </form>
             </CardContent>
@@ -242,7 +267,7 @@ export default function Reservations() {
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <CalendarDays className="h-4 w-4 text-primary" />
-                            <span className="font-medium">{format(new Date(res.reservation_date), 'MMM d, yyyy')}</span>
+                            <span className="font-medium">{format(new Date(res.reservation_date), "MMM d, yyyy")}</span>
                           </div>
                           <Badge className={getStatusColor(res.status)}>{res.status}</Badge>
                         </div>
@@ -265,7 +290,9 @@ export default function Reservations() {
                               <AlertDialogHeader>
                                 <AlertDialogTitle>Cancel Reservation?</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  Are you sure you want to cancel this reservation for {format(new Date(res.reservation_date), 'MMM d, yyyy')} at {res.reservation_time}? This action cannot be undone.
+                                  Are you sure you want to cancel this reservation for{" "}
+                                  {format(new Date(res.reservation_date), "MMM d, yyyy")} at {res.reservation_time}?
+                                  This action cannot be undone.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
@@ -275,7 +302,7 @@ export default function Reservations() {
                                   disabled={cancellingId === res.id}
                                   className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                                 >
-                                  {cancellingId === res.id ? 'Cancelling...' : 'Yes, cancel'}
+                                  {cancellingId === res.id ? "Cancelling..." : "Yes, cancel"}
                                 </AlertDialogAction>
                               </AlertDialogFooter>
                             </AlertDialogContent>
@@ -298,7 +325,8 @@ export default function Reservations() {
                 </div>
                 <div className="pt-4 border-t border-border">
                   <p className="text-sm text-muted-foreground">
-                    For large parties (10+) or special events, please call us at <span className="text-foreground font-medium">+880 1234-567890</span>
+                    For large parties (10+) or special events, please call us at{" "}
+                    <span className="text-foreground font-medium">+880 1234-567890</span>
                   </p>
                 </div>
               </CardContent>

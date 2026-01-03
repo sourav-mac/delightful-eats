@@ -186,7 +186,7 @@ export default function Reservations() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="phone">Phone</Label>
-                    <Input id="phone" name="phone" required placeholder="+91983XXX" />
+                    <Input id="phone" name="phone" required placeholder="+91 983XXX" />
                   </div>
                 </div>
 
